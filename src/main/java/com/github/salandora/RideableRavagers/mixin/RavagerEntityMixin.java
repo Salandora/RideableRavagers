@@ -13,6 +13,8 @@ import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityStatuses;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.Saddleable;
+import net.minecraft.entity.SaddledComponent;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.data.DataTracker;
@@ -38,6 +40,8 @@ import net.minecraft.recipe.Ingredient;
 import net.minecraft.server.ServerConfigHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Arm;
 import net.minecraft.util.Hand;
@@ -60,11 +64,12 @@ import java.util.UUID;
 import static net.minecraft.entity.passive.PassiveEntity.toGrowUpAge;
 
 @Mixin(RavagerEntity.class)
-public abstract class RavagerEntityMixin extends RaiderEntity implements BreedableEntity, Tamed {
+public abstract class RavagerEntityMixin extends RaiderEntity implements BreedableEntity, Tamed, Saddleable {
 	private static final TrackedData<Boolean> ridableravagers$BABY = DataTracker.registerData(RavagerEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+	private static final TrackedData<Boolean> ridableravagers$SADDLED = DataTracker.registerData(RavagerEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+	private static final TrackedData<Integer> ridableravagers$BOOST_TIME = DataTracker.registerData(RavagerEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	private static final TrackedData<Byte> ridableravagers$FLAGS = DataTracker.registerData(RavagerEntity.class, TrackedDataHandlerRegistry.BYTE);
 	private static final int ridableravagers$TAMED_FLAG = 2;
-	//private static final int ridableravagers$SADDLED_FLAG = 4;
 	private static final int ridableravagers$BRED_FLAG = 8;
 
 	@Unique
@@ -82,8 +87,16 @@ public abstract class RavagerEntityMixin extends RaiderEntity implements Breedab
 	@Unique
 	private UUID ridableravagers$ownerUuid;
 
+	@Unique
+	private SaddledComponent ridableravagers$saddledComponent;
+
 	protected RavagerEntityMixin(EntityType<? extends RaiderEntity> entityType, World world) {
 		super(entityType, world);
+	}
+
+	@Inject(method = "<init>", at = @At("TAIL"))
+	public void ridableravagers$constructor(EntityType entityType, World world, CallbackInfo ci) {
+		this.ridableravagers$saddledComponent = new SaddledComponent(this.dataTracker, ridableravagers$BOOST_TIME, ridableravagers$SADDLED);
 	}
 
 	@Unique
@@ -155,12 +168,18 @@ public abstract class RavagerEntityMixin extends RaiderEntity implements Breedab
 		super.initDataTracker();
 		this.dataTracker.startTracking(ridableravagers$BABY, false);
 		this.dataTracker.startTracking(ridableravagers$FLAGS, (byte) 0);
+		this.dataTracker.startTracking(ridableravagers$BOOST_TIME, 0);
+		this.dataTracker.startTracking(ridableravagers$SADDLED, true);
 	}
 
 	@Override
 	public void onTrackedDataSet(TrackedData<?> data) {
 		if (ridableravagers$BABY.equals(data)) {
 			this.calculateDimensions();
+		}
+
+		if (ridableravagers$BOOST_TIME.equals(data) && this.getWorld().isClient) {
+			this.ridableravagers$saddledComponent.boost();
 		}
 
 		super.onTrackedDataSet(data);
@@ -292,13 +311,20 @@ public abstract class RavagerEntityMixin extends RaiderEntity implements Breedab
 	public MobEntity createChild(ServerWorld world, BreedableEntity other) {
 		RavagerEntity entity = EntityType.RAVAGER.create(world);
 		((BreedableEntity) entity).setBred(true);
+		((RavagerEntityMixin) (Object) entity).ridableravagers$saddledComponent.setSaddled(false);
 		return entity;
 	}
 
 	@Override
 	protected ActionResult interactMob(PlayerEntity player, Hand hand) {
 		ItemStack itemStack = player.getStackInHand(hand);
-		if (this.isBreedingItem(itemStack)) {
+		boolean breedingItem = this.isBreedingItem(itemStack);
+		if (!breedingItem && this.isSaddled() && !this.hasPassengers() && !this.isBaby() && !player.shouldCancelInteraction()) {
+			if (!this.getWorld().isClient) {
+				this.ridableravagers$putPlayerOnBack(player);
+			}
+			return ActionResult.success(this.getWorld().isClient);
+		} else if (breedingItem) {
 			int i = this.getBreedingAge();
 			if (!this.getWorld().isClient && i == 0 && this.canEat()) {
 				this.eat(player, hand, itemStack);
@@ -324,12 +350,12 @@ public abstract class RavagerEntityMixin extends RaiderEntity implements Breedab
 			}
 		}
 
-		if (this.hasPassengers() || this.isBaby()) {
-			return super.interactMob(player, hand);
+		ActionResult actionResult = super.interactMob(player, hand);
+		if (!actionResult.isAccepted()) {
+			return itemStack.isOf(Items.SADDLE) ? itemStack.useOnEntity(player, this, hand) : ActionResult.PASS;
+		} else {
+			return actionResult;
 		}
-
-		this.ridableravagers$putPlayerOnBack(player);
-		return ActionResult.success(this.getWorld().isClient);
 	}
 
 	@Override
@@ -339,10 +365,11 @@ public abstract class RavagerEntityMixin extends RaiderEntity implements Breedab
 
 	@Override
 	protected void tickControlled(PlayerEntity controllingPlayer, Vec3d movementInput) {
-		super.tickControlled(controllingPlayer, movementInput);
 		Vec2f vec2f = this.ridableravagers$getControlledRotation(controllingPlayer);
 		this.setRotation(vec2f.y, vec2f.x);
 		this.prevYaw = this.bodyYaw = this.headYaw = this.getYaw();
+		this.ridableravagers$saddledComponent.tickBoost();
+		super.tickControlled(controllingPlayer, movementInput);
 	}
 
 	protected Vec2f ridableravagers$getControlledRotation(LivingEntity controllingPassenger) {
@@ -360,9 +387,32 @@ public abstract class RavagerEntityMixin extends RaiderEntity implements Breedab
 		return new Vec3d((double)f, 0.0, (double)g);
 	}
 
+	public boolean isSaddled() {
+		return this.ridableravagers$saddledComponent.isSaddled();
+	}
+
+	public boolean canBeSaddled() {
+		return this.isAlive() && !this.isBaby();
+	}
+
+	public void saddle(@Nullable SoundCategory sound) {
+		this.ridableravagers$saddledComponent.setSaddled(true);
+		if (sound != null) {
+			this.getWorld().playSoundFromEntity(null, this, SoundEvents.ENTITY_RAVAGER_ROAR, sound, 0.5F, 1.0F);
+		}
+	}
+
 	@Override
 	protected float getSaddledSpeed(PlayerEntity controllingPlayer) {
-		return (float)this.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+		return (float)(this.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED) * (double)this.ridableravagers$saddledComponent.getMovementSpeedMultiplier());
+	}
+
+	@Override
+	protected void dropInventory() {
+		super.dropInventory();
+		if (this.isSaddled()) {
+			this.dropItem(Items.SADDLE);
+		}
 	}
 
 	@Nullable
@@ -372,12 +422,12 @@ public abstract class RavagerEntityMixin extends RaiderEntity implements Breedab
 		if (var3 instanceof MobEntity) {
 			return (MobEntity)var3;
 		} else {
-			//if (this.isSaddled()) {
+			if (this.isSaddled()) {
 				var3 = this.getFirstPassenger();
 				if (var3 instanceof PlayerEntity) {
 					return (PlayerEntity)var3;
 				}
-			//}
+			}
 
 			return null;
 		}
@@ -468,6 +518,8 @@ public abstract class RavagerEntityMixin extends RaiderEntity implements Breedab
 		if (this.ridableravagers$lovingPlayer != null) {
 			nbt.putUuid("LoveCause", this.ridableravagers$lovingPlayer);
 		}
+
+		this.ridableravagers$saddledComponent.writeNbt(nbt);
 	}
 
 	@Inject(method = "readCustomDataFromNbt", at=@At("HEAD"))
@@ -490,6 +542,8 @@ public abstract class RavagerEntityMixin extends RaiderEntity implements Breedab
 
 		this.ridableravagers$loveTicks = nbt.getInt("InLove");
 		this.ridableravagers$lovingPlayer = nbt.containsUuid("LoveCause") ? nbt.getUuid("LoveCause") : null;
+
+		this.ridableravagers$saddledComponent.readNbt(nbt);
 	}
 
 	@Inject(method = "handleStatus", at = @At("HEAD"), cancellable = true)
