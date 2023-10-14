@@ -13,6 +13,14 @@ def modDir = new File(serverDir, "mods")
 
 base.archivesName = "${mod_name}-ignite_purpur-${libs.versions.minecraft.get()}"
 
+def dependencyProjects = [
+        project.dependencies.project(path: ":common", configuration: "namedElements")
+]
+
+dependencyProjects.forEach {
+    project.evaluationDependsOn(it.dependencyProject.path)
+}
+
 repositories {
     mavenCentral()
     maven {
@@ -43,7 +51,9 @@ dependencies {
 
     // Add your dependencies here
     // Here are some opinionated dependencies that might help you with your plugin development:
-    compileOnly project(":common")
+    dependencyProjects.forEach {
+        implementation it
+    }
 }
 
 spigot {
@@ -58,23 +68,32 @@ tasks {
     }
 
     processResources {
-        from(project(":common").sourceSets.main.resources) {
-            filesMatching("${mod_id}.mixins.json") {
-                filter {
-                    String line -> line.replaceAll("JAVA_\\d+", "JAVA_16")
-                }
+        from(sourceSets.main.resources)
+        for (p in dependencyProjects) {
+            from(p.dependencyProject.sourceSets.main.resources)
+        }
+        filesMatching("${mod_id}.mixins.json") {
+            filter {
+                String line -> line.replaceAll("JAVA_\\d+", "JAVA_16")
             }
         }
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 
-    tasks.withType(JavaCompile).configureEach {
-        source(project(":common").sourceSets.main.allSource)
+    jar {
+        from(sourceSets.main.output)
+        for (p in dependencyProjects) {
+            from(p.dependencyProject.sourceSets.main.output)
+        }
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
-    tasks.withType(Javadoc).configureEach {
-        source(project(":common").sourceSets.main.allJava)
-    }
-    tasks.named("sourcesJar", Jar) {
-        from(project(":common").sourceSets.main.allSource)
+
+    sourcesJar {
+        from(sourceSets.main.allJava)
+        for (p in dependencyProjects) {
+            from(p.dependencyProject.sourceSets.main.allJava)
+        }
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 
     clean {

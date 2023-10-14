@@ -1,9 +1,8 @@
 plugins {
-    alias libs.plugins.quilt.loom apply false
     alias libs.plugins.paperweight.userdev apply false
 }
 
-subprojects {
+allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'maven-publish'
@@ -17,7 +16,7 @@ subprojects {
         // withJavadocJar()
     }
 
-    jar {
+    tasks.withType(Jar).configureEach {
         from(rootProject.file("LICENSE")) {
             rename { "${it}_${mod_name}" }
         }
@@ -38,28 +37,8 @@ subprojects {
         }
     }
 
-    sourcesJar {
-        from(rootProject.file("LICENSE")) {
-            rename { "${it}_${mod_name}" }
-        }
-    }
-
     repositories {
         mavenCentral()
-
-        maven {
-            name 'Quilt (Release)'
-            url 'https://maven.quiltmc.org/repository/release/'
-        }
-
-        maven {
-            name 'Quilt (Snapshot)'
-            url 'https://maven.quiltmc.org/repository/snapshot/'
-            content {
-                includeGroup 'org.quiltmc.fabric_api_qsl'
-                includeGroupByRegex 'org\\.quiltmc\\.qsl(?:\\.[a-z_]+)?'
-            }
-        }
 
         maven {
             name = 'Sponge / Mixin'
@@ -77,7 +56,7 @@ subprojects {
         it.options.getRelease().set(17)
     }
 
-    processResources {
+    tasks.withType(ProcessResources).configureEach {
         def expandProps = [
                 "mod_name"                : mod_name,
                 "version"                 : version,
@@ -111,5 +90,12 @@ subprojects {
     // other mod developers.
     tasks.withType(GenerateModuleMetadata).configureEach {
         enabled = false
+    }
+
+    // Activate reproducible builds
+    // https://docs.gradle.org/current/userguide/working_with_files.html#sec:reproducible_archives
+    tasks.withType(AbstractArchiveTask).configureEach {
+        setPreserveFileTimestamps(false)
+        setReproducibleFileOrder(true)
     }
 }

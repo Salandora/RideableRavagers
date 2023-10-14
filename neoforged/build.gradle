@@ -3,7 +3,15 @@ plugins {
     alias libs.plugins.mixingradle
 }
 
-base.archivesName = "${mod_name}-neoforged-${libs.versions.minecraft.get()}-${version}"
+base.archivesName = "${mod_name}-neoforged-${libs.versions.minecraft.get()}"
+
+def dependencyProjects = [
+        project.dependencies.project(path: ":common", configuration: "namedElements")
+]
+
+dependencyProjects.forEach {
+    project.evaluationDependsOn(it.dependencyProject.path)
+}
 
 mixin {
     add(sourceSets.main, "${mod_id}.refmap.json")
@@ -28,11 +36,33 @@ minecraft {
     runs {
         client {
             taskName 'Client'
+
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                    dependencyProjects.each {
+                        source it.dependencyProject.sourceSets.main
+                        if (it.dependencyProject.hasProperty("sourceSets.client")) {
+                            source it.dependencyProject.sourceSets.client
+                        }
+                    }
+                }
+            }
         }
 
         server {
             taskName 'Server'
             args '--nogui'
+
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                    dependencyProjects.each {
+                        source it.dependencyProject.sourceSets.main
+                    }
+                }
+            }
+
         }
 
         /*data {
@@ -46,46 +76,57 @@ minecraft {
 
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                    source project(":common").sourceSets.main
-                    source project(":common").sourceSets.client
-                }
-            }
         }
     }
 }
 
 dependencies {
     minecraft libs.neoforge
-    compileOnly project(":common")
 
     annotationProcessor(variantOf(libs.mixin) { classifier 'processor' })
-}
 
-processResources {
-    from(project(":common").sourceSets.main.resources) {
-        exclude '*.accesswidener'
+    dependencyProjects.forEach {
+        implementation it
     }
-    from project(":common").sourceSets.client.resources
 }
 
-tasks.withType(JavaCompile).configureEach {
-    source(project(":common").sourceSets.main.allSource)
-    source(project(":common").sourceSets.client.allSource)
-}
-tasks.withType(Javadoc).configureEach {
-    source(project(":common").sourceSets.main.allJava)
-    source(project(":common").sourceSets.client.allJava)
-}
-tasks.named("sourcesJar", Jar) {
-    from(project(":common").sourceSets.main.allSource)
-    from(project(":common").sourceSets.client.allSource)
+tasks {
+    processResources {
+        from(sourceSets.main.resources)
+        for (p in dependencyProjects) {
+            from(p.dependencyProject.sourceSets.main.resources)
+            if (p.dependencyProject.hasProperty("sourceSets.client")) {
+                from(p.dependencyProject.sourceSets.client.resources)
+            }
+        }
+        exclude '*.accesswidener'
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    jar {
+        from(sourceSets.main.output)
+        for (p in dependencyProjects) {
+            from(p.dependencyProject.sourceSets.main.output)
+            if (p.dependencyProject.hasProperty("sourceSets.client")) {
+                from(p.dependencyProject.sourceSets.client.output)
+            }
+        }
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    sourcesJar {
+        from(sourceSets.main.allJava)
+        for (p in dependencyProjects) {
+            from(p.dependencyProject.sourceSets.main.allJava)
+            if (p.hasProperty("sourceSets.client")) {
+                from(p.dependencyProject.sourceSets.client.allJava)
+            }
+        }
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
 }
 
-jar.finalizedBy('reobfJar')
+jar.finalizedBy("reobfJar")
 
 publishing {
     publications {
