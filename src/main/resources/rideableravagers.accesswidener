@@ -1,4 +1,0 @@
-accessWidener v2 named
-accessible method net/minecraft/entity/ai/goal/TemptGoal isTemptedBy (Lnet/minecraft/entity/LivingEntity;)Z
-extendable method net/minecraft/entity/ai/goal/TemptGoal isTemptedBy (Lnet/minecraft/entity/LivingEntity;)Z
-accessible field net/minecraft/entity/ai/TargetPredicate predicate Ljava/util/function/Predicate;

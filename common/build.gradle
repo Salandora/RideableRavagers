@@ -1,0 +1,51 @@
+apply plugin: libs.plugins.quilt.loom.get().getPluginId()
+
+base.archivesName = "${mod_name}-common-${libs.versions.minecraft.get()}-${version}"
+
+dependencies {
+    minecraft libs.minecraft
+    mappings loom.officialMojangMappings()
+
+    //DO NOT USE IN PROJECT
+    //Provides necessary stuff for project to compile
+    modCompileOnly libs.quilt.loader
+
+    compileOnly libs.mixin
+}
+
+loom {
+    splitEnvironmentSourceSets()
+
+    if(file("src/main/resources/${mod_id}.accesswidener").exists()) {
+        accessWidenerPath.set(file("src/main/resources/${mod_id}.accesswidener"))
+    }
+
+    mixin {
+        defaultRefmapName.set("${mod_id}.refmap.json")
+    }
+
+    runConfigs.configureEach {
+        ideConfigGenerated = false
+    }
+}
+
+import net.fabricmc.loom.task.AbstractRemapJarTask
+tasks.withType(AbstractRemapJarTask).each {
+    it.targetNamespace = "named"
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId base.archivesName.get()
+            version project.version
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url "file://" + System.getenv("local_maven")
+        }
+    }
+}

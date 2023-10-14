@@ -1,0 +1,40 @@
+[versions]
+# The latest versions are available at https://lambdaurora.dev/tools/import_quilt.html
+minecraft = "1.20.1"
+mc_range = "[1.20, 1.21)"
+
+quilt_loader = "0.21.0"
+fabric_loader = "0.14.22"
+neoforge = "1.20.1-47.1.75"
+neo_range = "[47,)"
+neo_loader_range = "[47,)"
+purpur_api = "1.20.1-R0.1-SNAPSHOT"
+mixin = "0.8.5"
+ignite = "0.8.0"
+
+fabric_api = "0.89.3+1.20.1"
+quilted_fabric_api = "7.3.1+0.89.3-1.20.1"
+
+jetbrains_annotations = "24.0.1"
+findbugs = "3.0.1"
+
+[libraries]
+minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
+quilt_loader = { module = "org.quiltmc:quilt-loader", version.ref = "quilt_loader" }
+fabric_loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric_loader" }
+neoforge = { module = "net.neoforged:forge", version.ref = "neoforge" }
+mixin = { module = "org.spongepowered:mixin", version.ref = "mixin" }
+ignite = { module = "space.vectrix.ignite:ignite-api", version.ref = "ignite" }
+
+fabric_api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric_api" }
+quilted_fabric_api = { module = "org.quiltmc.quilted-fabric-api:quilted-fabric-api", version.ref = "quilted_fabric_api" }
+
+jetbrains_annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains_annotations" }
+findbugs = { module = "com.google.code.findbugs:jsr305", version.ref = "findbugs" }
+
+[plugins]
+fabric_loom = { id = "fabric-loom", version = "1.4-SNAPSHOT" }
+quilt_loom = { id = "org.quiltmc.loom", version = "1.+" }
+neogradle = { id = "net.neoforged.gradle", version = "6.0.18" }
+mixingradle = { id = "org.spongepowered.mixin", version = "0.7.33" }
+paperweight_userdev = { id = "io.papermc.paperweight.userdev", version = "1.5.5" }

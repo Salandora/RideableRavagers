@@ -1,0 +1,148 @@
+import java.nio.file.Files
+
+plugins {
+    id "io.github.rancraftplayz.remapper" version "1.0.2"
+    //id("xyz.jpenilla.run-paper") version "2.2.0" // Adds runServer and runMojangMappedServer tasks for testing
+}
+
+apply plugin: 'io.papermc.paperweight.userdev'
+
+def serverDir = rootProject.file("run/ignite_purpur")
+def pluginsDir = new File(serverDir, "plugins")
+def modDir = new File(serverDir, "mods")
+
+base.archivesName = "${mod_name}-ignite_purpur-${libs.versions.minecraft.get()}"
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "PurpurMC"
+        url = uri("https://repo.purpurmc.org/snapshots")
+    }
+    maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+    maven {
+        name = "sonatype"
+        url = "https://oss.sonatype.org/content/groups/public/"
+    }
+    maven { url = "https://maven.elmakers.com/repository/" }
+}
+
+dependencies {
+    paperweight.devBundle("org.purpurmc.purpur", libs.versions.purpur.api.get())
+    remapLib "org.purpurmc.purpur:purpur-server:userdev-${libs.versions.purpur.api.get()}"
+    /*if (project(":common").file("src/main/resources/${mod_id}.accesswidener").exists()) {
+        accessWidener project(":common").fileTree(dir: 'src/main/resources', include: ['*.accesswidener'])
+    }
+    accessWidenerLib "org.purpurmc.purpur:purpur-server:userdev-${libs.versions.spigot.api.get()}"*/
+
+    implementation libs.ignite
+    implementation libs.mixin
+
+    // Add your dependencies here
+    // Here are some opinionated dependencies that might help you with your plugin development:
+    compileOnly project(":common")
+}
+
+spigot {
+    version = libs.versions.minecraft.get()
+}
+
+jar.finalizedBy(remapJar)
+
+tasks {
+    assemble {
+        dependsOn(reobfJar)
+    }
+
+    processResources {
+        from(project(":common").sourceSets.main.resources) {
+            filesMatching("${mod_id}.mixins.json") {
+                filter {
+                    String line -> line.replaceAll("JAVA_\\d+", "JAVA_16")
+                }
+            }
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        source(project(":common").sourceSets.main.allSource)
+    }
+    tasks.withType(Javadoc).configureEach {
+        source(project(":common").sourceSets.main.allJava)
+    }
+    tasks.named("sourcesJar", Jar) {
+        from(project(":common").sourceSets.main.allSource)
+    }
+
+    clean {
+        doLast {
+            modDir.deleteDir()
+        }
+    }
+
+    tasks.register("downloadServer") {
+        group = "purpur"
+        doFirst {
+            serverDir.mkdirs()
+            pluginsDir.mkdirs()
+            modDir.mkdirs()
+            new URL("https://api.purpurmc.org/v2/purpur/${libs.versions.minecraft.get()}/latest/download").openStream().withStream {
+                Files.copy(it, new File(serverDir, "purpur.jar").toPath())
+            }
+        }
+    }
+
+    tasks.register("downloadIgnite") {
+        group = "purpur"
+        doFirst {
+            modDir.mkdirs()
+            new URL("https://github.com/vectrix-space/ignite/releases/download/v0.8.1/ignite-launcher.jar").openStream().withStream {
+                Files.copy(it, new File(serverDir, "ignite-launcher.jar").toPath())
+            }
+        }
+    }
+
+    tasks.register("copyMod") {
+        group = "purpur"
+        doFirst {
+            new File(modDir, "${base.archivesName.get()}.jar").delete()
+        }
+
+        dependsOn(reobfJar)
+
+        doLast {
+            Files.copy(layout.buildDirectory.file("libs/${base.archivesName.get()}-${version}.jar").get().asFile.toPath(), new File(modDir, "${base.archivesName.get()}.jar").toPath())
+        }
+    }
+
+    tasks.register("runIgniteServer", JavaExec) {
+        group = "purpur"
+
+        if (!new File(serverDir, "purpur.jar").exists()) {
+            dependsOn("downloadServer")
+        }
+        if (!new File(serverDir, "ignite-launcher.jar").exists()) {
+            dependsOn("downloadIgnite")
+        }
+
+        dependsOn('copyMod')
+
+        classpath = files(new File(serverDir, "ignite-launcher.jar"))
+        jvmArgs = [
+            "-Dignite.service=paper",
+            "-Dignite.jar=./versions/${libs.versions.minecraft.get()}/purpur-${libs.versions.minecraft.get()}.jar",
+            "-Dignite.paper.jar=./purpur.jar",
+            "-Dignite.paper.minecraft=${libs.versions.minecraft.get()}",
+            "-Dignite.paper.override=false",
+            "-Dcom.mojang.eula.agree=true"
+        ]
+        args = [
+    //        "--nogui"
+        ]
+        workingDir = serverDir
+        standardInput = System.in
+    }
+}

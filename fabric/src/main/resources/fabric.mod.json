@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "${mod_author}"
+  ],
+  "contact": {},
+
+  "license": "AGPL-3.0",
+  "icon": "assets/rideableravagers/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.github.salandora.rideableravagers.RideableRavagersMod"
+    ]
+  },
+
+  "mixins": [
+    "rideableravagers.mixins.json",
+    {
+      "config": "rideableravagers.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": ">=${minecraft_version}",
+    "java": ">=17"
+  }
+}
