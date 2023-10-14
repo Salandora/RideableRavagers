@@ -26,6 +26,6 @@ pluginManagement {
 
 rootProject.name = "RideableRavagers"
 
-include("common", "fabric", "forge", "quilt", "ignite_purpur", "purpur_plugin")
+include("common", "fabric", "neoforged", "quilt", "ignite_purpur", "purpur_plugin")
 
 //include("common", "ignite_purpur", "purpur_plugin")
