@@ -1,0 +1,5 @@
+name: ${mod_name}
+version: ${version}
+description: ${mod_description}
+main: com.github.salandora.rideableravagers.RideableRavagersPlugin
+api-version: 1.20

@@ -1,0 +1,81 @@
+import java.nio.file.Files
+
+apply plugin: 'io.papermc.paperweight.userdev'
+
+def serverDir = rootProject.file("run/ignite_purpur")
+def pluginsDir = new File(serverDir, "plugins")
+
+base.archivesName = "${mod_name}-purpur_plugin-${libs.versions.minecraft.get()}"
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "PurpurMC"
+        url = uri("https://repo.purpurmc.org/snapshots")
+    }
+    maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+    maven {
+        name = "sonatype"
+        url = "https://oss.sonatype.org/content/groups/public/"
+    }
+    maven { url = "https://maven.elmakers.com/repository/" }
+}
+
+dependencies {
+    paperweight.devBundle("org.purpurmc.purpur", libs.versions.purpur.api.get())
+
+    // Add your dependencies here
+    // Here are some opinionated dependencies that might help you with your plugin development:
+}
+
+tasks {
+    assemble {
+        dependsOn(reobfJar)
+    }
+
+    clean {
+        doLast {
+            pluginsDir.deleteDir()
+        }
+    }
+
+    processResources {
+        // from(project(":common").sourceSets.main.resources)
+    }
+
+    tasks.register("copyPlugin") {
+        group = "purpur"
+        doFirst {
+            new File(pluginsDir, "${base.archivesName.get()}.jar").delete()
+        }
+
+        dependsOn(reobfJar)
+
+        doLast {
+            Files.copy(layout.buildDirectory.file("libs/${base.archivesName.get()}-${version}.jar").get().asFile.toPath(), new File(pluginsDir, "${base.archivesName.get()}.jar").toPath())
+        }
+    }
+
+    tasks.register("runServer", JavaExec) {
+        group = "purpur"
+
+        dependsOn("copyPlugin")
+
+        if (!new File(serverDir, "server.jar").exists()) {
+            dependsOn("downloadServer")
+        }
+
+        classpath = files(new File(serverDir, "server.jar"))
+        workingDir = serverDir
+        jvmArgs = [
+            "-Dcom.mojang.eula.agree=true"
+        ]
+        args = [
+//            "--nogui"
+        ]
+        standardInput = System.in
+    }
+}
