@@ -1,24 +1,6 @@
-plugins {
-    alias libs.plugins.quilt.loom
-}
+apply plugin: libs.plugins.quilt.loom.get().getPluginId()
 
-base.archivesName = "${mod_name}-common-${libs.versions.minecraft.get()}"
-
-repositories {
-    maven {
-        name 'Quilt (Release)'
-        url 'https://maven.quiltmc.org/repository/release/'
-    }
-
-    maven {
-        name 'Quilt (Snapshot)'
-        url 'https://maven.quiltmc.org/repository/snapshot/'
-        content {
-            includeGroup 'org.quiltmc.fabric_api_qsl'
-            includeGroupByRegex 'org\\.quiltmc\\.qsl(?:\\.[a-z_]+)?'
-        }
-    }
-}
+base.archivesName = "${mod_name}-common-${libs.versions.minecraft.get()}-${version}"
 
 dependencies {
     minecraft libs.minecraft

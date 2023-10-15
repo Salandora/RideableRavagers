@@ -1,32 +1,6 @@
-plugins {
-    alias libs.plugins.quilt.loom
-}
+apply plugin: libs.plugins.quilt.loom.get().getPluginId()
 
-base.archivesName = "${mod_name}-quilt-${libs.versions.minecraft.get()}"
-
-def dependencyProjects = [
-        project.dependencies.project(path: ":common", configuration: "namedElements")
-]
-
-dependencyProjects.forEach {
-    project.evaluationDependsOn(it.dependencyProject.path)
-}
-
-repositories {
-    maven {
-        name 'Quilt (Release)'
-        url 'https://maven.quiltmc.org/repository/release/'
-    }
-
-    maven {
-        name 'Quilt (Snapshot)'
-        url 'https://maven.quiltmc.org/repository/snapshot/'
-        content {
-            includeGroup 'org.quiltmc.fabric_api_qsl'
-            includeGroupByRegex 'org\\.quiltmc\\.qsl(?:\\.[a-z_]+)?'
-        }
-    }
-}
+base.archivesName = "${mod_name}-quilt-${libs.versions.minecraft.get()}-${version}"
 
 dependencies {
     minecraft libs.minecraft
@@ -35,30 +9,24 @@ dependencies {
     modImplementation libs.quilt.loader
     modImplementation libs.quilted.fabric.api
 
-    dependencyProjects.forEach {
-        implementation it
-        if (it.dependencyProject.hasProperty("sourceSets.client")) {
-            clientImplementation it.dependencyProject.sourceSets.client.output
-        }
-    }
+    implementation project(path: ':common', configuration: 'namedElements')
 }
 
 loom {
     runtimeOnlyLog4j = true
 
-    if (file("src/main/resources/${mod_id}.accesswidener").exists()) {
-        accessWidenerPath.set(file("src/main/resources/${mod_id}.accesswidener"))
+    if (project(":common:").file("src/main/resources/${mod_id}.accesswidener").exists()) {
+        accessWidenerPath.set(project(":common:").file("src/main/resources/${mod_id}.accesswidener"))
+    }
+
+    mixin {
+        defaultRefmapName.set("${mod_id}.refmap.json")
     }
 
     mods {
         "${mod_id}" {
-            sourceSet sourceSets.main
-            dependencyProjects.each {
-                sourceSet it.dependencyProject.sourceSets.main
-                if (it.dependencyProject.hasProperty("sourceSets.client")) {
-                    sourceSet it.dependencyProject.sourceSets.client
-                }
-            }
+            sourceSet("main")
+            sourceSet("main", project(":common"))
         }
     }
 
@@ -79,39 +47,22 @@ loom {
     }
 }
 
-tasks {
-    processResources {
-        from(sourceSets.main.resources)
-        for (p in dependencyProjects) {
-            from(p.dependencyProject.sourceSets.main.resources)
-            if (p.dependencyProject.hasProperty("sourceSets.client")) {
-                from(p.dependencyProject.sourceSets.client.resources)
-            }
-        }
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    }
+processResources {
+    from project(":common").sourceSets.main.resources
+    from project(":common").sourceSets.client.resources
+}
 
-    jar {
-        from(sourceSets.main.output)
-        for (p in dependencyProjects) {
-            from(p.dependencyProject.sourceSets.main.output)
-            if (p.dependencyProject.hasProperty("sourceSets.client")) {
-                from(p.dependencyProject.sourceSets.client.output)
-            }
-        }
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    }
-
-    sourcesJar {
-        from(sourceSets.main.allJava)
-        for (p in dependencyProjects) {
-            from(p.dependencyProject.sourceSets.main.allJava)
-            if (p.hasProperty("sourceSets.client")) {
-                from(p.dependencyProject.sourceSets.client.allJava)
-            }
-        }
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    }
+tasks.withType(JavaCompile).configureEach {
+    source(project(":common").sourceSets.main.allSource)
+    source(project(":common").sourceSets.client.allSource)
+}
+tasks.withType(Javadoc).configureEach {
+    source(project(":common").sourceSets.main.allJava)
+    source(project(":common").sourceSets.client.allJava)
+}
+tasks.named("sourcesJar", Jar) {
+    from(project(":common").sourceSets.main.allSource)
+    from(project(":common").sourceSets.client.allSource)
 }
 
 publishing {
