@@ -29,7 +29,7 @@ rootProject.name = "RideableRavagers"
 include("common")
 include("fabric")
 include("neoforged")
-include("quilt")
+//include("quilt")
 include("ignite_purpur")
 
 //include("common", "fabric", "neoforged", "quilt", "ignite_purpur", "purpur_plugin")
