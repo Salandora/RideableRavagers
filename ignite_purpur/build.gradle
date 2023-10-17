@@ -2,7 +2,6 @@ import java.nio.file.Files
 
 plugins {
     id "io.github.rancraftplayz.remapper" version "1.0.2"
-    //id("xyz.jpenilla.run-paper") version "2.2.0" // Adds runServer and runMojangMappedServer tasks for testing
 }
 
 apply plugin: 'io.papermc.paperweight.userdev'
@@ -35,8 +34,8 @@ dependencies {
     remapLib "org.purpurmc.purpur:purpur-server:userdev-${libs.versions.purpur.api.get()}"
     /*if (project(":common").file("src/main/resources/${mod_id}.accesswidener").exists()) {
         accessWidener project(":common").fileTree(dir: 'src/main/resources', include: ['*.accesswidener'])
-    }
-    accessWidenerLib "org.purpurmc.purpur:purpur-server:userdev-${libs.versions.spigot.api.get()}"*/
+    }*/
+    // accessWidenerLib "org.purpurmc.purpur:purpur-server:userdev-${libs.versions.spigot.api.get()}"
 
     implementation libs.ignite
     implementation libs.mixin
@@ -59,22 +58,36 @@ tasks {
 
     processResources {
         from(project(":common").sourceSets.main.resources) {
-            filesMatching("${mod_id}.mixins.json") {
-                filter {
-                    String line -> line.replaceAll("JAVA_\\d+", "JAVA_16")
-                }
+            exclude "architectury.common.json"
+        }
+
+        doLast {
+            fileTree(dir: outputs.files.asPath, include: "*.mixins.json").each {
+                File file ->
+                    def jsonContent = new groovy.json.JsonSlurper().parse(file)
+
+                    jsonContent.remove("client")
+                    jsonContent.compatibilityLevel = "JAVA_16"
+
+                    file.text = new groovy.json.JsonBuilder(jsonContent).toPrettyString()
             }
         }
     }
 
     tasks.withType(JavaCompile).configureEach {
         source(project(":common").sourceSets.main.allSource)
+
+        exclude "com/github/salandora/rideableravagers/mixins/client/**"
     }
     tasks.withType(Javadoc).configureEach {
         source(project(":common").sourceSets.main.allJava)
+
+        exclude "com/github/salandora/rideableravagers/mixins/client/**"
     }
     tasks.named("sourcesJar", Jar) {
         from(project(":common").sourceSets.main.allSource)
+
+        exclude "com/github/salandora/rideableravagers/mixins/client/**"
     }
 
     clean {
@@ -114,6 +127,7 @@ tasks {
         dependsOn(reobfJar)
 
         doLast {
+            modDir.mkdirs()
             Files.copy(layout.buildDirectory.file("libs/${base.archivesName.get()}-${version}.jar").get().asFile.toPath(), new File(modDir, "${base.archivesName.get()}.jar").toPath())
         }
     }

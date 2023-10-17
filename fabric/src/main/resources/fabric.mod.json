@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "${mod_id}",
+  "id": "rideableravagers",
   "version": "${version}",
 
   "name": "${mod_name}",
@@ -21,11 +21,7 @@
   },
 
   "mixins": [
-    "rideableravagers.mixins.json",
-    {
-      "config": "rideableravagers.client.mixins.json",
-      "environment": "client"
-    }
+    "rideableravagers.common.mixins.json"
   ],
 
   "depends": {

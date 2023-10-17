@@ -1,5 +1,7 @@
-package com.github.salandora.rideableravagers.mixins;
+package com.github.salandora.rideableravagers.mixins.client;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.model.RavagerModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
@@ -12,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+@Environment(EnvType.CLIENT)
 @Mixin(RavagerRenderer.class)
 public abstract class RavagerEntityRendererMixin extends MobRenderer<Ravager, RavagerModel> {
 	public RavagerEntityRendererMixin(EntityRendererProvider.Context context, RavagerModel entityModel, float f) {

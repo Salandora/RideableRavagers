@@ -7,7 +7,6 @@ import space.vectrix.ignite.api.Platform;
 import space.vectrix.ignite.api.event.Subscribe;
 import space.vectrix.ignite.api.event.platform.PlatformInitializeEvent;
 
-
 public final class RideableRavagersMod {
 	private final Logger logger;
 	private final Platform platform;

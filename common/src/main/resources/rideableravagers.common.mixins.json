@@ -9,8 +9,11 @@
         "RavagerEntityMixin",
         "TemptGoalAccessor"
     ],
+    "client": [
+        "client.RavagerEntityModelMixin",
+        "client.RavagerEntityRendererMixin"
+    ],
     "injectors": {
         "defaultRequire": 1
-    },
-    "refmap": "rideableravagers.refmap.json"
+    }
 }

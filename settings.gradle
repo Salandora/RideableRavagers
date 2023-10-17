@@ -2,23 +2,23 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven {
-            mod_name = 'Quilt'
-            url = 'https://maven.quiltmc.org/repository/release'
+            name = "Architectury"
+            url "https://maven.architectury.dev/"
         }
         maven {
-            mod_name = 'Fabric'
+            name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
         }
         maven {
-            mod_name = 'NeoForged'
-            url = 'https://maven.neoforged.net/releases'
+            name = 'Quilt'
+            url = 'https://maven.quiltmc.org/repository/release'
         }
         maven {
-            mod_name = 'Sponge Snapshots'
-            url = 'https://repo.spongepowered.org/repository/maven-public/'
+            name = 'NeoForged'
+            url = 'https://maven.neoforged.net/releases/'
         }
         maven {
-            mod_name = "PaperMC"
+            name = "PaperMC"
             url = "https://repo.papermc.io/repository/maven-public/"
         }
     }
@@ -26,6 +26,10 @@ pluginManagement {
 
 rootProject.name = "RideableRavagers"
 
-include("common", "fabric", "neoforged", "quilt", "ignite_purpur", "purpur_plugin")
+include("common")
+include("fabric")
+include("neoforged")
+include("quilt")
+include("ignite_purpur")
 
-//include("common", "ignite_purpur", "purpur_plugin")
+//include("common", "fabric", "neoforged", "quilt", "ignite_purpur", "purpur_plugin")

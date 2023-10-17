@@ -1,6 +1,6 @@
 {
     "schemaVersion": 1,
-    "id": "${mod_id}",
+    "id": "rideableravagers",
     "version": "${version}",
 
     "name": "${mod_name}",
@@ -14,7 +14,7 @@
     "entry": "com.github.salandora.rideableravagers.RideableRavagersMod",
 
     "mixins": [
-        "rideableravagers.mixins.json"
+        "rideableravagers.common.mixins.json"
     ],
 
     "dependencies": [

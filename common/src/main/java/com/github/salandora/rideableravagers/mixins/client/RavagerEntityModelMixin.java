@@ -1,12 +1,15 @@
-package com.github.salandora.rideableravagers.mixins;
+package com.github.salandora.rideableravagers.mixins.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.RavagerModel;
 import net.minecraft.world.entity.monster.Ravager;
 import org.spongepowered.asm.mixin.Mixin;
 
+@Environment(EnvType.CLIENT)
 @Mixin(RavagerModel.class)
 public abstract class RavagerEntityModelMixin extends HierarchicalModel<Ravager> {
 	@Override
