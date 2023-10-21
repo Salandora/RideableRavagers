@@ -1,6 +1,6 @@
 import java.nio.file.Files
 
-apply plugin: 'io.papermc.paperweight.userdev'
+apply plugin: libs.plugins.paperweight.userdev.get().getPluginId()
 
 def serverDir = rootProject.file("run/ignite_purpur")
 def pluginsDir = new File(serverDir, "plugins")

@@ -4,7 +4,7 @@ plugins {
     id "io.github.rancraftplayz.remapper" version "1.0.2"
 }
 
-apply plugin: 'io.papermc.paperweight.userdev'
+apply plugin: libs.plugins.paperweight.userdev.get().getPluginId()
 
 def serverDir = rootProject.file("run/ignite_purpur")
 def pluginsDir = new File(serverDir, "plugins")
@@ -27,6 +27,7 @@ repositories {
         url = "https://oss.sonatype.org/content/groups/public/"
     }
     maven { url = "https://maven.elmakers.com/repository/" }
+    maven { url = "https://api.modrinth.com/maven" }
 }
 
 dependencies {
@@ -40,9 +41,11 @@ dependencies {
     implementation libs.ignite
     implementation libs.mixin
 
+    //implementation libs.midnightlib.fabric
+
     // Add your dependencies here
     // Here are some opinionated dependencies that might help you with your plugin development:
-    compileOnly project(":common")
+    compileOnly(project(":common"))
 }
 
 spigot {
@@ -77,16 +80,19 @@ tasks {
     tasks.withType(JavaCompile).configureEach {
         source(project(":common").sourceSets.main.allSource)
 
+        exclude "com/github/salandora/rideableravagers/config/**"
         exclude "com/github/salandora/rideableravagers/mixins/client/**"
     }
     tasks.withType(Javadoc).configureEach {
         source(project(":common").sourceSets.main.allJava)
 
+        exclude "com/github/salandora/rideableravagers/config/**"
         exclude "com/github/salandora/rideableravagers/mixins/client/**"
     }
     tasks.named("sourcesJar", Jar) {
         from(project(":common").sourceSets.main.allSource)
 
+        exclude "com/github/salandora/rideableravagers/config/**"
         exclude "com/github/salandora/rideableravagers/mixins/client/**"
     }
 

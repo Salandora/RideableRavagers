@@ -1,6 +1,8 @@
 package com.github.salandora.rideableravagers;
 
+//import com.github.salandora.rideableravagers.config.RideableRavagersConfig;
 import com.google.inject.Inject;
+//import eu.midnightdust.lib.config.MidnightConfig;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import space.vectrix.ignite.api.Platform;
@@ -19,6 +21,6 @@ public final class RideableRavagersMod {
 
 	@Subscribe
 	public void onInitialize(final @NotNull PlatformInitializeEvent event) {
-		this.logger.info("Rideable Ravagers");
+		//MidnightConfig.init("rideableravagers", RideableRavagersConfig.class);
 	}
 }

@@ -1,0 +1,8 @@
+{
+    "rideableravagers.midnightconfig.title": "Rideable Ravagers",
+    "rideableravagers.midnightconfig.requiresRestart": "Requires Restart",
+    "rideableravagers.midnightconfig.spawnInSavannah": "Spawn Ravagers in Savannah Biomes",
+    "rideableravagers.midnightconfig.spawnWeight": "Spawn Weight",
+    "rideableravagers.midnightconfig.spawnMinGroupSize": "Min Group Size",
+    "rideableravagers.midnightconfig.spawnMaxGroupSize": "Max Group Size"
+}

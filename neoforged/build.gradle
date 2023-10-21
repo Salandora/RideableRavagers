@@ -3,8 +3,13 @@ plugins {
 }
 
 architectury {
+    injectInjectables = false
     platformSetupLoomIde()
     forge()
+}
+
+repositories {
+    maven { url "https://api.modrinth.com/maven" }
 }
 
 loom {
@@ -45,7 +50,10 @@ configurations {
 }
 
 dependencies {
-    forge libs.neoforge
+    forge libs.forge
+
+    modImplementation libs.midnightlib.forge
+    include libs.midnightlib.forge
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }

@@ -5,7 +5,8 @@ mc_range = "[1.20, 1.21)"
 
 quilt_loader = "0.21.0"
 fabric_loader = "0.14.22"
-neoforge = "1.20.1-47.1.75"
+neoforge = "1.20.1-47.1.79"
+forge = "1.20.1-47.2.1"
 neo_range = "[47,)"
 neo_loader_range = "[47,)"
 purpur_api = "1.20.1-R0.1-SNAPSHOT"
@@ -18,11 +19,15 @@ quilted_fabric_api = "7.3.1+0.89.3-1.20.1"
 jetbrains_annotations = "24.0.1"
 findbugs = "3.0.1"
 
+midnightlib_fabric = "1.4.1-fabric"
+midnightlib_forge = "1.4.1-forge"
+
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
 quilt_loader = { module = "org.quiltmc:quilt-loader", version.ref = "quilt_loader" }
 fabric_loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric_loader" }
 neoforge = { module = "net.neoforged:forge", version.ref = "neoforge" }
+forge = { module = "net.minecraftforge:forge", version.ref = "forge" }
 mixin = { module = "org.spongepowered:mixin", version.ref = "mixin" }
 ignite = { module = "space.vectrix.ignite:ignite-api", version.ref = "ignite" }
 
@@ -31,6 +36,11 @@ quilted_fabric_api = { module = "org.quiltmc.quilted-fabric-api:quilted-fabric-a
 
 jetbrains_annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains_annotations" }
 findbugs = { module = "com.google.code.findbugs:jsr305", version.ref = "findbugs" }
+
+midnightlib_fabric = { module = "maven.modrinth:midnightlib", version.ref = "midnightlib_fabric" }
+midnightlib_forge = { module = "maven.modrinth:midnightlib", version.ref = "midnightlib_forge" }
+
+modmenu = { module = "com.terraformersmc:modmenu", version = "7.2.2" }
 
 [plugins]
 architectury_plugin = { id = "architectury-plugin", version = "3.4-SNAPSHOT" }

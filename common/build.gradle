@@ -1,5 +1,10 @@
 architectury {
+    injectInjectables = false
     common(rootProject.enabled_platforms.split(","))
+}
+
+repositories {
+    maven { url "https://api.modrinth.com/maven" }
 }
 
 loom {
@@ -16,6 +21,7 @@ dependencies {
     // We depend on fabric loader here to use the fabric @Environment annotations and get the mixin dependencies
     // Do NOT use other classes from fabric loader
     modImplementation libs.fabric.loader
+    modCompileOnlyApi libs.midnightlib.fabric
 }
 
 publishing {
