@@ -1,10 +1,17 @@
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+
+import org.apache.tools.zip.ZipEntry
+import org.apache.tools.zip.ZipOutputStream
+
 import java.nio.file.Files
+import com.github.jengelman.gradle.plugins.shadow.transformers.Transformer
+import com.github.jengelman.gradle.plugins.shadow.transformers.TransformerContext
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowCopyAction
+import org.codehaus.plexus.util.IOUtil
 
-plugins {
-    id "io.github.rancraftplayz.remapper" version "1.0.2"
-}
-
-apply plugin: libs.plugins.paperweight.userdev.get().getPluginId()
+apply plugin: libs.plugins.shadow.get().getPluginId()
+apply plugin: 'io.papermc.paperweight.userdev'
 
 def serverDir = rootProject.file("run/ignite_purpur")
 def pluginsDir = new File(serverDir, "plugins")
@@ -30,13 +37,15 @@ repositories {
     maven { url = "https://api.modrinth.com/maven" }
 }
 
+configurations {
+    common
+    shadowCommon // Don't use shadow from the shadow plugin since it *excludes* files.
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+}
+
 dependencies {
     paperweight.devBundle("org.purpurmc.purpur", libs.versions.purpur.api.get())
-    remapLib "org.purpurmc.purpur:purpur-server:userdev-${libs.versions.purpur.api.get()}"
-    /*if (project(":common").file("src/main/resources/${mod_id}.accesswidener").exists()) {
-        accessWidener project(":common").fileTree(dir: 'src/main/resources', include: ['*.accesswidener'])
-    }*/
-    // accessWidenerLib "org.purpurmc.purpur:purpur-server:userdev-${libs.versions.spigot.api.get()}"
 
     implementation libs.ignite
     implementation libs.mixin
@@ -44,56 +53,46 @@ dependencies {
     //implementation libs.midnightlib.fabric
 
     // Add your dependencies here
-    // Here are some opinionated dependencies that might help you with your plugin development:
-    compileOnly(project(":common"))
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "namedElements")) { transitive false }
 }
 
-spigot {
-    version = libs.versions.minecraft.get()
+shadowJar {
+    dependsOn(jar)
+
+    exclude "architectury**"
+    exclude "**.refmap.json"
+    exclude "**/config/**"
+    exclude "**/client/**"
+
+    transform(MixinJsonTransformer)
+
+    configurations = [project.configurations.getByName("shadowCommon")]
+    archiveClassifier.set('dev-shadow')
 }
 
-jar.finalizedBy(remapJar)
+reobfJar {
+    inputJar.set(shadowJar.archiveFile)
+    dependsOn shadowJar
+
+    remapperArgs.add("--mixin")
+}
+
+sourcesJar {
+    def commonSources = project(":common").sourcesJar
+    dependsOn commonSources
+    from commonSources.archiveFile.map { zipTree(it) }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}
 
 tasks {
     assemble {
         dependsOn(reobfJar)
-    }
-
-    processResources {
-        from(project(":common").sourceSets.main.resources) {
-            exclude "architectury.common.json"
-        }
-
-        doLast {
-            fileTree(dir: outputs.files.asPath, include: "*.mixins.json").each {
-                File file ->
-                    def jsonContent = new groovy.json.JsonSlurper().parse(file)
-
-                    jsonContent.remove("client")
-                    jsonContent.compatibilityLevel = "JAVA_16"
-
-                    file.text = new groovy.json.JsonBuilder(jsonContent).toPrettyString()
-            }
-        }
-    }
-
-    tasks.withType(JavaCompile).configureEach {
-        source(project(":common").sourceSets.main.allSource)
-
-        exclude "com/github/salandora/rideableravagers/config/**"
-        exclude "com/github/salandora/rideableravagers/mixins/client/**"
-    }
-    tasks.withType(Javadoc).configureEach {
-        source(project(":common").sourceSets.main.allJava)
-
-        exclude "com/github/salandora/rideableravagers/config/**"
-        exclude "com/github/salandora/rideableravagers/mixins/client/**"
-    }
-    tasks.named("sourcesJar", Jar) {
-        from(project(":common").sourceSets.main.allSource)
-
-        exclude "com/github/salandora/rideableravagers/config/**"
-        exclude "com/github/salandora/rideableravagers/mixins/client/**"
     }
 
     clean {
@@ -164,5 +163,53 @@ tasks {
         ]
         workingDir = serverDir
         standardInput = System.in
+    }
+}
+
+class MixinJsonTransformer implements Transformer {
+    private Map<String, String> jsonObjects = [:]
+
+    private final PatternSet patternSet = new PatternSet().include("*.mixins.json")
+
+    @Override
+    boolean canTransformResource(FileTreeElement element) {
+        FileTreeElement target = element instanceof ShadowCopyAction.ArchiveFileTreeElement ? element.asFileTreeElement() : element
+        return patternSet.asSpec.isSatisfiedBy(target)
+    }
+
+    @Override
+    void transform(TransformerContext context) {
+        Object jsonContent
+        try {
+            def bis = new BufferedInputStream(context.is) {
+                void close() throws IOException {
+                    // leave ZIP open
+                }
+            }
+            jsonContent = new JsonSlurper().parse(bis)
+        } catch (Exception e) {
+            throw (IOException) new IOException("Error parsing components.xml in " + context.is).initCause(e)
+        }
+
+        jsonContent.remove("client")
+        jsonContent.compatibilityLevel = "JAVA_16"
+
+        jsonObjects[context.path] = new JsonBuilder(jsonContent).toPrettyString()
+    }
+
+    @Override
+    boolean hasTransformedResource() {
+        return jsonObjects.size() > 0
+    }
+
+    @Override
+    void modifyOutputStream(ZipOutputStream os, boolean preserveFileTimestamps) {
+        jsonObjects.each { String path, String data ->
+            ZipEntry entry = new ZipEntry(path)
+            entry.time = TransformerContext.getEntryTimestamp(preserveFileTimestamps, entry.time)
+            os.putNextEntry(entry)
+            IOUtil.copy(data, os)
+            os.closeEntry()
+        }
     }
 }

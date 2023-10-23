@@ -1,6 +1,4 @@
-plugins {
-    alias libs.plugins.shadow
-}
+apply plugin: libs.plugins.shadow.get().getPluginId()
 
 architectury {
     injectInjectables = false
