@@ -137,6 +137,16 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	}
 
 	@Override
+	public boolean requiresCustomPersistence() {
+		return super.requiresCustomPersistence() || this.isBred();
+	}
+
+	@Override
+	protected boolean shouldDespawnInPeaceful() {
+		return super.shouldDespawnInPeaceful() || !this.isBred();
+	}
+
+	@Override
 	public boolean canAttackWithOwner(LivingEntity target, LivingEntity owner) {
 		if (target instanceof Creeper || target instanceof Ghast) {
 			return false;
