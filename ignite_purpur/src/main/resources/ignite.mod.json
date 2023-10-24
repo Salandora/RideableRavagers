@@ -14,7 +14,8 @@
     "entry": "com.github.salandora.rideableravagers.RideableRavagersMod",
 
     "mixins": [
-        "rideableravagers.common.mixins.json"
+        "rideableravagers.common.mixins.json",
+        "rideableravagers.mixins.json"
     ],
 
     "dependencies": [

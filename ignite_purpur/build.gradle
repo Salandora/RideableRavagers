@@ -50,19 +50,18 @@ dependencies {
     implementation libs.ignite
     implementation libs.mixin
 
-    //implementation libs.midnightlib.fabric
-
     // Add your dependencies here
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "namedElements")) { transitive false }
 }
 
 shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     dependsOn(jar)
 
     exclude "architectury**"
     exclude "**.refmap.json"
-    exclude "**/config/**"
     exclude "**/client/**"
 
     transform(MixinJsonTransformer)
@@ -79,8 +78,15 @@ reobfJar {
 }
 
 sourcesJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
+
+    exclude "architectury**"
+    exclude "**.refmap.json"
+    exclude "**/client/**"
+
     from commonSources.archiveFile.map { zipTree(it) }
 }
 

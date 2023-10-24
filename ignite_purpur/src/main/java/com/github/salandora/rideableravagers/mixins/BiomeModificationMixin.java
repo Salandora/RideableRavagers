@@ -1,4 +1,3 @@
-/*
 package com.github.salandora.rideableravagers.mixins;
 
 import com.github.salandora.rideableravagers.config.RideableRavagersConfig;
@@ -76,4 +75,3 @@ public abstract class BiomeModificationMixin {
 		}
 	}
 }
-*/

@@ -1,4 +1,3 @@
-/*
 package com.github.salandora.rideableravagers.mixins;
 
 import net.minecraft.util.random.WeightedRandomList;
@@ -27,4 +26,3 @@ public interface MobSpawnSettingsAccessor {
 	@Mutable
 	void setMobSpawnCosts(Map<EntityType<?>, MobSpawnSettings.MobSpawnCost> spawnCosts);
 }
-*/
