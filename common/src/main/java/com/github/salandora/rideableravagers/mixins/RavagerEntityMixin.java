@@ -196,16 +196,18 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 
 	@Unique
 	public void ridableravagers$growUp(int age, boolean overGrow) {
-		int i = this.getBreedingAge();
-		i += age * 20;
-		if (i > 0) {
-			i = 0;
+		int newAge = this.getBreedingAge();
+		int oldAge = newAge;
+
+		newAge += age * 20;
+		if (newAge > 0) {
+			newAge = 0;
 		}
 
-		int k = i - i;
-		this.setBreedingAge(i);
+		int difference = newAge - oldAge;
+		this.setBreedingAge(newAge);
 		if (overGrow) {
-			this.ridableravagers$forcedAge += k;
+			this.ridableravagers$forcedAge += difference;
 		}
 
 		if (this.getBreedingAge() == 0) {
