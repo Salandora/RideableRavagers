@@ -4,7 +4,6 @@ import com.github.salandora.rideableravagers.mixins.TemptGoalAccessor;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.goal.TemptGoal;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.monster.Ravager;
 import net.minecraft.world.item.crafting.Ingredient;
 

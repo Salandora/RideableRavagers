@@ -7,13 +7,14 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.RavagerModel;
 import net.minecraft.world.entity.monster.Ravager;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Environment(EnvType.CLIENT)
 @Mixin(RavagerModel.class)
 public abstract class RavagerEntityModelMixin extends HierarchicalModel<Ravager> {
 	@Override
-	public void renderToBuffer(PoseStack matrices, VertexConsumer vertices, int light, int overlay, float red, float green, float blue, float alpha) {
+	public void renderToBuffer(@NotNull PoseStack matrices, @NotNull VertexConsumer vertices, int light, int overlay, float red, float green, float blue, float alpha) {
 		if (this.young) {
 			matrices.pushPose();
 			float f = 1.0F / 2.0f;

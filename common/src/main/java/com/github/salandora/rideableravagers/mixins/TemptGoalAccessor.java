@@ -12,6 +12,6 @@ public interface TemptGoalAccessor {
 	@Accessor
 	TargetingConditions getTargetingConditions();
 
-	@Invoker("shouldFollow")
+	@Invoker
 	boolean invokeShouldFollow(LivingEntity entity);
 }

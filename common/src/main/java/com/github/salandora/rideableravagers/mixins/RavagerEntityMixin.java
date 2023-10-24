@@ -6,6 +6,7 @@ import com.github.salandora.rideableravagers.entity.ai.goal.BreedableMateGoal;
 import com.github.salandora.rideableravagers.entity.ai.goal.RavagerAttackWithOwnerGoal;
 import com.github.salandora.rideableravagers.entity.ai.goal.RavagerTemptGoal;
 import com.github.salandora.rideableravagers.entity.ai.goal.RavagerTrackOwnerAttackerGoal;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -60,13 +61,20 @@ import net.minecraft.world.phys.Vec3;
 
 import static net.minecraft.world.entity.AgeableMob.getSpeedUpSecondsWhenFeeding;
 
+@SuppressWarnings({"WrongEntityDataParameterClass", "AddedMixinMembersNamePattern", "DataFlowIssue"})
 @Mixin(Ravager.class)
 public abstract class RavagerEntityMixin extends Raider implements BreedableEntity, Tamed, Saddleable {
-	private static final EntityDataAccessor<Boolean> ridableravagers$BABY = SynchedEntityData.defineId(Ravager.class, EntityDataSerializers.BOOLEAN);
+	@Unique
 	private static final EntityDataAccessor<Boolean> ridableravagers$SADDLED = SynchedEntityData.defineId(Ravager.class, EntityDataSerializers.BOOLEAN);
+	@Unique
 	private static final EntityDataAccessor<Integer> ridableravagers$BOOST_TIME = SynchedEntityData.defineId(Ravager.class, EntityDataSerializers.INT);
+	@Unique
 	private static final EntityDataAccessor<Byte> ridableravagers$FLAGS = SynchedEntityData.defineId(Ravager.class, EntityDataSerializers.BYTE);
+	@Unique
 	private static final int ridableravagers$TAMED_FLAG = 2;
+	@Unique
+	private static final int ridableravagers$BABY_FLAG = 4;
+	@Unique
 	private static final int ridableravagers$BRED_FLAG = 8;
 
 	@Unique
@@ -92,7 +100,7 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	}
 
 	@Inject(method = "<init>", at = @At("TAIL"))
-	public void ridableravagers$constructor(EntityType entityType, Level world, CallbackInfo ci) {
+	public void ridableravagers$constructor(EntityType<? extends Ravager> entityType, Level world, CallbackInfo ci) {
 		this.ridableravagers$saddledComponent = new ItemBasedSteering(this.entityData, ridableravagers$BOOST_TIME, ridableravagers$SADDLED);
 	}
 
@@ -158,15 +166,14 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	@Override
 	protected void defineSynchedData() {
 		super.defineSynchedData();
-		this.entityData.define(ridableravagers$BABY, false);
 		this.entityData.define(ridableravagers$FLAGS, (byte) 0);
 		this.entityData.define(ridableravagers$BOOST_TIME, 0);
 		this.entityData.define(ridableravagers$SADDLED, true);
 	}
 
 	@Override
-	public void onSyncedDataUpdated(EntityDataAccessor<?> data) {
-		if (ridableravagers$BABY.equals(data)) {
+	public void onSyncedDataUpdated(@NotNull EntityDataAccessor<?> data) {
+		if (ridableravagers$FLAGS.equals(data)) {
 			this.refreshDimensions();
 		}
 
@@ -199,7 +206,7 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	@Override
 	public int getBreedingAge() {
 		if (this.level().isClientSide) {
-			return this.entityData.get(ridableravagers$BABY) ? -1 : 1;
+			return this.ridableravagers$getFlag(ridableravagers$BABY_FLAG) ? -1 : 1;
 		} else {
 			return this.ridableravagers$breedingAge;
 		}
@@ -210,11 +217,12 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 		int i = this.getBreedingAge();
 		this.ridableravagers$breedingAge = age;
 		if (i < 0 && age >= 0 || i >= 0 && age < 0) {
-			this.entityData.set(ridableravagers$BABY, age < 0);
+			this.ridableravagers$setFlag(ridableravagers$BABY_FLAG, age < 0);
 			this.ridableravagers$onGrowUp();
 		}
 	}
 
+	@SuppressWarnings("DataFlowIssue")
 	@Unique
 	protected void ridableravagers$onGrowUp() {
 		if (this.isBaby()) {
@@ -310,7 +318,7 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	}
 
 	@Override
-	protected InteractionResult mobInteract(Player player, InteractionHand hand) {
+	protected @NotNull InteractionResult mobInteract(Player player, @NotNull InteractionHand hand) {
 		ItemStack itemStack = player.getItemInHand(hand);
 		boolean breedingItem = this.isBreedingItem(itemStack);
 		if (!breedingItem && this.isTamed() && this.isSaddled() && !this.isVehicle() && !this.isBaby() && !player.isSecondaryUseActive()) {
@@ -330,7 +338,7 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 				// TODO: change to "Feed the baby Steaks to gain hearts as it grows to "gain it's trust". (Could use angry hearts from villagers with some random number eventually being the hearts when the Ravager grows.)"
 				this.eat(player, hand, itemStack);
 				if (!this.isTamed()) {
-					this.level().broadcastEntityEvent((Entity) this, EntityEvent.IN_LOVE_HEARTS);
+					this.level().broadcastEntityEvent(this, EntityEvent.IN_LOVE_HEARTS);
 					this.ridableravagers$setTamed(true);
 					this.ridableravagers$setOwnerUuid(player.getUUID());
 					this.setTarget(null);
@@ -354,12 +362,12 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	}
 
 	@Override
-	public boolean canBeLeashed(Player player) {
+	public boolean canBeLeashed(@NotNull Player player) {
 		return !this.isLeashed() && isBred();
 	}
 
 	@Override
-	protected void tickRidden(Player controllingPlayer, Vec3 movementInput) {
+	protected void tickRidden(@NotNull Player controllingPlayer, @NotNull Vec3 movementInput) {
 		Vec2 vec2f = this.ridableravagers$getControlledRotation(controllingPlayer);
 		this.setRot(vec2f.y, vec2f.x);
 		this.yRotO = this.yBodyRot = this.yHeadRot = this.getYRot();
@@ -367,19 +375,20 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 		super.tickRidden(controllingPlayer, movementInput);
 	}
 
+	@Unique
 	protected Vec2 ridableravagers$getControlledRotation(LivingEntity controllingPassenger) {
 		return new Vec2(controllingPassenger.getXRot() * 0.5F, controllingPassenger.getYRot());
 	}
 
 	@Override
-	protected Vec3 getRiddenInput(Player controllingPlayer, Vec3 movementInput) {
+	protected @NotNull Vec3 getRiddenInput(Player controllingPlayer, @NotNull Vec3 movementInput) {
 		float f = controllingPlayer.xxa * 0.5F;
 		float g = controllingPlayer.zza;
 		if (g <= 0.0F) {
 			g *= 0.25F;
 		}
 
-		return new Vec3((double)f, 0.0, (double)g);
+		return new Vec3(f, 0.0, g);
 	}
 
 	public boolean isSaddled() {
@@ -398,7 +407,7 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	}
 
 	@Override
-	protected float getRiddenSpeed(Player controllingPlayer) {
+	protected float getRiddenSpeed(@NotNull Player controllingPlayer) {
 		return (float)(this.getAttributeValue(Attributes.MOVEMENT_SPEED) * (double)this.ridableravagers$saddledComponent.boostFactor());
 	}
 
@@ -428,6 +437,7 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 		}
 	}
 
+	@Unique
 	@Nullable
 	private Vec3 ridableravagers$locateSafeDismountingPos(Vec3 offset, LivingEntity passenger) {
 		double d = this.getX() + offset.x;
@@ -462,16 +472,16 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	}
 
 	@Override
-	public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
+	public @NotNull Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
 		Vec3 vec3d = getCollisionHorizontalEscapeVector(
-				(double)this.getBbWidth(), (double)passenger.getBbWidth(), this.getYRot() + (passenger.getMainArm() == HumanoidArm.RIGHT ? 90.0F : -90.0F)
+				this.getBbWidth(), passenger.getBbWidth(), this.getYRot() + (passenger.getMainArm() == HumanoidArm.RIGHT ? 90.0F : -90.0F)
 		);
 		Vec3 vec3d2 = this.ridableravagers$locateSafeDismountingPos(vec3d, passenger);
 		if (vec3d2 != null) {
 			return vec3d2;
 		} else {
 			Vec3 vec3d3 = getCollisionHorizontalEscapeVector(
-					(double)this.getBbWidth(), (double)passenger.getBbWidth(), this.getYRot() + (passenger.getMainArm() == HumanoidArm.LEFT ? 90.0F : -90.0F)
+					this.getBbWidth(), passenger.getBbWidth(), this.getYRot() + (passenger.getMainArm() == HumanoidArm.LEFT ? 90.0F : -90.0F)
 			);
 			Vec3 vec3d4 = this.ridableravagers$locateSafeDismountingPos(vec3d3, passenger);
 			return vec3d4 != null ? vec3d4 : this.position();

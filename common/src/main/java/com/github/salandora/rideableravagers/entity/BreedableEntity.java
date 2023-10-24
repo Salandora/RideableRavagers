@@ -1,5 +1,6 @@
 package com.github.salandora.rideableravagers.entity;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -25,7 +26,7 @@ public interface BreedableEntity {
 
 	boolean isBreedingItem(ItemStack stack);
 
-	default void eat(Player player, InteractionHand hand, ItemStack stack) {
+	default void eat(@NotNull Player player, InteractionHand hand, ItemStack stack) {
 		if (!player.getAbilities().instabuild) {
 			stack.shrink(1);
 		}
@@ -58,7 +59,7 @@ public interface BreedableEntity {
 		}
 	}
 
-	default void breed(ServerLevel world, BreedableEntity other, @Nullable Mob baby)  {
+	default void breed(@NotNull ServerLevel world, @NotNull BreedableEntity other, @Nullable Mob baby)  {
 		Optional.ofNullable(this.getLovingPlayer()).or(() -> Optional.ofNullable(other.getLovingPlayer())).ifPresent(player -> {
 			player.awardStat(Stats.ANIMALS_BRED);
 			//Criteria.BRED_ANIMALS.trigger(player, this, other, baby);

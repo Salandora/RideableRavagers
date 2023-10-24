@@ -23,10 +23,6 @@ public class BreedableMateGoal extends Goal {
 	private int timer;
 	private final double speed;
 
-	public BreedableMateGoal(Mob entity, double speed) {
-		this(entity, speed, entity.getClass());
-	}
-
 	public BreedableMateGoal(Mob entity, double speed, Class<? extends LivingEntity> entityClass) {
 		this.breedableEntity = (BreedableEntity) entity;
 		this.entity = entity;
