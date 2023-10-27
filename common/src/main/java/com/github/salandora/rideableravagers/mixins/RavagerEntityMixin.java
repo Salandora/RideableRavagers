@@ -143,7 +143,7 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 
 	@Override
 	protected boolean shouldDespawnInPeaceful() {
-		return super.shouldDespawnInPeaceful() || !this.isBred();
+		return super.shouldDespawnInPeaceful() && !this.isBred();
 	}
 
 	@Override
