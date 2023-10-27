@@ -105,6 +105,8 @@ allprojects {
                 "quilt_loader_version"    : libs.versions.quilt.loader.get(),
                 "fabric_loader_version"   : libs.versions.fabric.loader.get(),
 
+                "fabric_biome_api_v1"     : libs.versions.fabricApi.biome.api.v1.get(),
+
                 "mod_author"              : mod_author,
                 "mod_license"             : mod_license,
                 "mod_description"         : project.description
