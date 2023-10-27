@@ -51,7 +51,7 @@ dependencies {
     forge libs.neoforge
 
     modImplementation libs.midnightlib.forge
-    /*include libs.midnightlib.forge*/
+    include libs.midnightlib.forge
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
