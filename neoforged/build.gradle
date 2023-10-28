@@ -67,8 +67,6 @@ dependencies {
 }
 
 processResources {
-    from project(":common").sourceSets.main.resources
-
     def expandProps = [
             "version"                 : version,
 
