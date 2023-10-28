@@ -32,7 +32,7 @@ jobs:
 
       - name: Get Minecraft Version
         id: minecraft_version
-        run: grep -e 'minecraft\s*=\s*".*"' gradle/libs.versions.toml | sed "s/\s//g" >> $GITHUB_OUTPUT
+        run: grep -e 'minecraft\s*=\s*".*"' gradle/libs.versions.toml | sed "s/\s//g" | sed 's/"//g' >> $GITHUB_OUTPUT
 
       - name: Get Composite Version
         id: composite_version
