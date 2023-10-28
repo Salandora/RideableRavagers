@@ -33,19 +33,7 @@ subprojects {
 
     repositories {
         mavenCentral()
-        maven {
-            name 'Quilt (Release)'
-            url 'https://maven.quiltmc.org/repository/release/'
-        }
-
-        maven {
-            name 'Quilt (Snapshot)'
-            url 'https://maven.quiltmc.org/repository/snapshot/'
-            content {
-                includeGroup 'org.quiltmc.fabric_api_qsl'
-                includeGroupByRegex 'org\\.quiltmc\\.qsl(?:\\.[a-z_]+)?'
-            }
-        }
+        maven { url "https://api.modrinth.com/maven" }
     }
 }
 
@@ -87,36 +75,6 @@ allprojects {
     tasks.withType(JavaCompile).configureEach {
         it.options.encoding = 'UTF-8'
         it.options.getRelease().set(17)
-    }
-
-    processResources {
-        def expandProps = [
-                "mod_name"                : mod_name,
-                "version"                 : version,
-                "group"                   : project.group, //Else we target the task's group.
-
-                "minecraft_version"       : libs.versions.minecraft.get(),
-                "minecraft_version_range" : libs.versions.mc.range.get(),
-
-                "neo_version"             : libs.versions.neoforge.get(),
-                "neo_loader_version_range": libs.versions.neo.loader.range.get(),
-                "neo_version_range"       : libs.versions.neo.range.get(),
-
-                "quilt_loader_version"    : libs.versions.quilt.loader.get(),
-                "fabric_loader_version"   : libs.versions.fabric.loader.get(),
-
-                "fabric_biome_api_v1"     : libs.versions.fabricApi.biome.api.v1.get(),
-
-                "mod_author"              : mod_author,
-                "mod_license"             : mod_license,
-                "mod_description"         : project.description
-        ]
-
-        inputs.properties(expandProps)
-
-        filesMatching(['pack.mcmeta', '*.mod.json', '*.mixins.json', 'META-INF/mods.toml', 'plugin.yml']) {
-            expand expandProps
-        }
     }
 
     // Disables Gradle's custom module metadata from being published to maven. The

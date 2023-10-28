@@ -3,14 +3,14 @@
   "id": "rideableravagers",
   "version": "${version}",
 
-  "name": "${mod_name}",
-  "description": "${mod_description}",
+  "name": "Rideable Ravagers",
+  "description": "Enables you to breed ravagers and ride the tamed ones",
   "authors": [
-    "${mod_author}"
+    "Salandora"
   ],
   "contact": {},
 
-  "license": "AGPL-3.0",
+  "license": "GNU-AGPL-v3.0",
   "icon": "assets/rideableravagers/icon.png",
 
   "environment": "*",

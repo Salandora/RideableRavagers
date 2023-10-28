@@ -34,7 +34,6 @@ repositories {
         url = "https://oss.sonatype.org/content/groups/public/"
     }
     maven { url = "https://maven.elmakers.com/repository/" }
-    maven { url = "https://api.modrinth.com/maven" }
 }
 
 configurations {
@@ -53,6 +52,21 @@ dependencies {
     // Add your dependencies here
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "namedElements")) { transitive false }
+}
+
+processResources {
+    def expandProps = [
+            "version"                 : version,
+
+            "minecraft_version"       : libs.versions.minecraft.get(),
+            "minecraft_version_range" : libs.versions.mc.range.get()
+    ]
+
+    inputs.properties(expandProps)
+
+    filesMatching(['*.mixins.json', 'plugin.yml']) {
+        expand expandProps
+    }
 }
 
 shadowJar {

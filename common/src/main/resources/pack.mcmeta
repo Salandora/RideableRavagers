@@ -1,6 +1,6 @@
 {
     "pack": {
-        "description": "${mod_description}",
+        "description": "Enables you to breed ravagers and ride the tamed ones",
         "pack_format": 8
     }
 }

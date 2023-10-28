@@ -6,10 +6,6 @@ architectury {
     forge()
 }
 
-repositories {
-    maven { url "https://api.modrinth.com/maven" }
-}
-
 loom {
     runtimeOnlyLog4j = true
 
@@ -47,16 +43,6 @@ configurations {
     developmentForge.extendsFrom common
 }
 
-dependencies {
-    forge libs.neoforge
-
-    modImplementation libs.midnightlib.forge
-    include libs.midnightlib.forge
-
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
-}
-
 repositories {
     maven {
         name = 'NeoForged'
@@ -64,7 +50,39 @@ repositories {
     }
 }
 
+dependencies {
+    forge libs.neoforge
+
+    modImplementation libs.midnightlib.forge
+    include libs.midnightlib.forge
+
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive false }
+}
+
+processResources {
+    from project(":common").sourceSets.main.resources
+
+    def expandProps = [
+            "version"                 : version,
+
+            "minecraft_version"       : libs.versions.minecraft.get(),
+            "minecraft_version_range" : libs.versions.mc.range.get(),
+
+            "neo_loader_version_range": libs.versions.neo.loader.range.get(),
+            "neo_version_range"       : libs.versions.neo.range.get()
+    ]
+
+    inputs.properties(expandProps)
+
+    filesMatching(['pack.mcmeta', 'META-INF/mods.toml']) {
+        expand expandProps
+    }
+}
+
 shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     exclude "fabric.mod.json"
     exclude "architectury.common.json"
 
@@ -83,6 +101,8 @@ jar {
 }
 
 sourcesJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
     from commonSources.archiveFile.map { zipTree(it) }

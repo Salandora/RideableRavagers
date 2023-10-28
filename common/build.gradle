@@ -3,10 +3,6 @@ architectury {
     common(rootProject.enabled_platforms.split(","))
 }
 
-repositories {
-    maven { url "https://api.modrinth.com/maven" }
-}
-
 loom {
     if(file("src/main/resources/${mod_id}.accesswidener").exists()) {
         accessWidenerPath.set(file("src/main/resources/${mod_id}.accesswidener"))
