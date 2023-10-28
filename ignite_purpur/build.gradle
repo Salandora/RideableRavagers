@@ -17,8 +17,6 @@ def serverDir = rootProject.file("run/ignite_purpur")
 def pluginsDir = new File(serverDir, "plugins")
 def modDir = new File(serverDir, "mods")
 
-base.archivesName = "${mod_name}-ignite_purpur-${libs.versions.minecraft.get()}"
-
 repositories {
     mavenCentral()
     maven {

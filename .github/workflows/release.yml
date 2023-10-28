@@ -1,0 +1,90 @@
+name: Release
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        java: [ 17 ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup JDK${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/loom-cache
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Get Mod Version
+        id: mod_version
+        run: grep "mod_version" gradle.properties | sed "s/\s//g" >> $GITHUB_OUTPUT
+
+      - name: Get Minecraft Version
+        id: minecraft_version
+        run: grep -e 'minecraft\s*=\s*".*"' gradle/libs.versions.toml | sed "s/\s//g" >> $GITHUB_OUTPUT
+
+      - name: Get Composite Version
+        id: composite_version
+        run: echo "composite_version=${{ steps.mod_version.outputs.mod_version }}-${{ steps.minecraft_version.outputs.minecraft_version }}" >> $GITHUB_OUTPUT
+
+      - name: Publish
+        env:
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          RELEASE: true
+        run: ./gradlew build publish curseforge
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.composite_version.outputs.composite_version }}
+          release_name: RideableRavagers ${{ steps.composite_version.outputs.composite_version }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+
+      - name: Upload Fabric Release Asset
+        id: upload_fabric_release_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./fabric/build/libs/RideableRavagers-${{ steps.composite_version.outputs.composite_version }}-fabric.jar
+          asset_name: RideableRavagers-${{ steps.composite_version.outputs.composite_version }}-fabric.jar
+          asset_content_type: application/java-archive
+
+      - name: Upload Forge Release Asset
+        id: upload_forge_release_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./forge/build/libs/RideableRavagers-${{ steps.composite_version.outputs.composite_version }}-forge.jar
+          asset_name: RideableRavagers-${{ steps.composite_version.outputs.composite_version }}-forge.jar
+          asset_content_type: application/java-archive
+
+      - name: Upload Ignite Release Asset
+        id: upload_ignite_release_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./ignite_purpur/build/libs/RideableRavagers-${{ steps.composite_version.outputs.composite_version }}-ignite_purpur.jar
+          asset_name: RideableRavagers-${{ steps.composite_version.outputs.composite_version }}-ignite_purpur.jar
+          asset_content_type: application/java-archive

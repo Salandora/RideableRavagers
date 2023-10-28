@@ -1,5 +1,11 @@
 apply plugin: libs.plugins.shadow.get().getPluginId()
 
+if (System.getenv("CURSEFORGE_TOKEN")) {
+    apply plugin: libs.plugins.cursegradle.get().getPluginId()
+}
+
+evaluationDependsOn(":common")
+
 architectury {
     injectInjectables = false
     platformSetupLoomIde()
@@ -116,14 +122,43 @@ components.java {
 
 publishing {
     publications {
-        mavenForge(MavenPublication) {
+        mavenFabric(MavenPublication) {
             artifactId = base.archivesName.get()
-            from components.java
+            version = project.version
+            artifact(remapJar) {
+                builtBy remapJar
+                classifier ''
+            }
         }
     }
 
     // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
         // Add repositories to publish to here.
+    }
+}
+
+if (System.getenv("CURSEFORGE_TOKEN")) {
+    curseforge {
+        apiKey = System.getenv("CURSEFORGE_TOKEN")
+        project {
+            id = '928703'
+            releaseType = 'release'
+            changelogType = 'markdown'
+            changelog = file('../CHANGELOG.md')
+
+            addGameVersion libs.versions.minecraft.get()
+            addGameVersion 'Forge'
+            addGameVersion 'NeoForge'
+
+            mainArtifact(remapJar) {
+                displayName = 'RideableRavagers-' + project.version
+            }
+        }
+        options {
+            javaIntegration = false
+            forgeGradleIntegration = false
+            javaVersionAutoDetect = false
+        }
     }
 }
