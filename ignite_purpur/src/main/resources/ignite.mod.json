@@ -3,7 +3,7 @@
     "id": "rideableravagers",
     "version": "${version}",
 
-    "name": "Rideable Ravagers",
+    "name": "RideableRavagers",
     "description": "Enables you to breed ravagers and ride the tamed ones",
     "authors": [
         "Salandora"
