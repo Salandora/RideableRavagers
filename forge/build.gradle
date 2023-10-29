@@ -28,11 +28,11 @@ loom {
     runs {
         client {
             client()
-            setConfigName("NeoForged Client")
+            setConfigName("Forge Client")
         }
         server {
             server()
-            setConfigName("NeoForged Server")
+            setConfigName("Forge Server")
         }
 
         configureEach {
@@ -49,15 +49,8 @@ configurations {
     developmentForge.extendsFrom common
 }
 
-repositories {
-    maven {
-        name = 'NeoForged'
-        url = 'https://maven.neoforged.net/releases/'
-    }
-}
-
 dependencies {
-    forge libs.neoforge
+    forge libs.forge
 
     modImplementation libs.midnightlib.forge
     include libs.midnightlib.forge
@@ -73,7 +66,7 @@ processResources {
             "minecraft_version"       : libs.versions.minecraft.get(),
             "minecraft_version_range" : libs.versions.mc.range.get(),
 
-            "neo_version_range"       : libs.versions.neo.range.get()
+            "forge_version_range"     : libs.versions.forge.range.get()
     ]
 
     inputs.properties(expandProps)
@@ -145,7 +138,7 @@ if (System.getenv("CURSEFORGE_TOKEN")) {
             changelog = file('../CHANGELOG.md')
 
             addGameVersion libs.versions.minecraft.get()
-            addGameVersion 'NeoForge'
+            addGameVersion 'Forge'
 
             mainArtifact(remapJar) {
                 displayName = 'RideableRavagers-' + project.version

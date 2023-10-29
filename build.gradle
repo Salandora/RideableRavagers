@@ -7,7 +7,7 @@ plugins {
 }
 
 subprojects {
-    if (!["common", "fabric", "neoforged", "quilt"].contains(it.name)) {
+    if (!["common", "fabric", "forge", "neoforged", "quilt"].contains(it.name)) {
         return
     }
 
