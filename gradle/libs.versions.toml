@@ -1,37 +1,44 @@
 [versions]
-minecraft = "1.20.1"
-mc_range = "[1.20, 1.21)"
+minecraft = "1.20.2"
+mc_range = "[1.20.2, 1.21)"
 
-quilt_loader = "0.21.0"
 fabric_loader = "0.14.22"
-forge = "1.20.1-47.2.1"
-forge_range = "[47,)"
+fabric_api = "0.89.3+1.20.2"
+fabricApi_biome_api_v1 = "13.0.11"
+
+forge = "1.20.2-48.0.1"
+forge_range = "[48,)"
+
 neoforge = "1.20.1-47.1.79"
 neo_range = "[47,)"
-purpur_api = "1.20.1-R0.1-SNAPSHOT"
-mixin = "0.8.5"
-ignite = "0.8.0"
 
-fabric_api = "0.89.3+1.20.1"
-fabricApi_biome_api_v1 = "13.0.11"
-quilted_fabric_api = "7.3.1+0.89.3-1.20.1"
+ignite = "0.8.0"
+purpur_api = "1.20.2-R0.1-SNAPSHOT"
+mixin = "0.8.5"
+
+quilt_loader = "0.21.0"
+quilted_fabric_api = "7.3.1+0.89.3-1.20.2"
 
 jetbrains_annotations = "24.0.1"
 findbugs = "3.0.1"
 
-midnightlib_fabric = "1.4.1-fabric"
-midnightlib_forge = "1.4.1-forge"
+midnightlib_fabric = "1.5.0-fabric"
+midnightlib_forge = "1.5.0-forge"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
-quilt_loader = { module = "org.quiltmc:quilt-loader", version.ref = "quilt_loader" }
-fabric_loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric_loader" }
-neoforge = { module = "net.neoforged:forge", version.ref = "neoforge" }
-forge = { module = "net.minecraftforge:forge", version.ref = "forge" }
-mixin = { module = "org.spongepowered:mixin", version.ref = "mixin" }
-ignite = { module = "space.vectrix.ignite:ignite-api", version.ref = "ignite" }
 
+fabric_loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric_loader" }
 fabric_api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric_api" }
+
+forge = { module = "net.minecraftforge:forge", version.ref = "forge" }
+
+neoforge = { module = "net.neoforged:forge", version.ref = "neoforge" }
+
+ignite = { module = "space.vectrix.ignite:ignite-api", version.ref = "ignite" }
+mixin = { module = "org.spongepowered:mixin", version.ref = "mixin" }
+
+quilt_loader = { module = "org.quiltmc:quilt-loader", version.ref = "quilt_loader" }
 quilted_fabric_api = { module = "org.quiltmc.quilted-fabric-api:quilted-fabric-api", version.ref = "quilted_fabric_api" }
 
 jetbrains_annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains_annotations" }
