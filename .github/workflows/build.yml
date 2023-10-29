@@ -47,5 +47,6 @@ jobs:
           name: Artifacts
           path: |
             fabric/build/libs/
+            forge/build/libs/
             neoforged/build/libs/
             ignite_purpur/build/libs/

@@ -85,6 +85,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./forge/build/libs/RideableRavagers-${{ steps.composite_version.outputs.composite_version }}-forge.jar
+          asset_name: RideableRavagers-${{ steps.composite_version.outputs.composite_version }}-forge.jar
+          asset_content_type: application/java-archive
+
+      - name: Upload NeoForged Release Asset
+        if: ${{ !env.ACT }}
+        id: upload_neoforged_release_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./neoforged/build/libs/RideableRavagers-${{ steps.composite_version.outputs.composite_version }}-neoforged.jar
           asset_name: RideableRavagers-${{ steps.composite_version.outputs.composite_version }}-neoforged.jar
           asset_content_type: application/java-archive
