@@ -1,8 +1,6 @@
 apply plugin: libs.plugins.shadow.get().getPluginId()
-
-if (System.getenv("CURSEFORGE_TOKEN")) {
-    apply plugin: libs.plugins.cursegradle.get().getPluginId()
-}
+apply plugin: libs.plugins.minotaur.get().getPluginId()
+apply plugin: libs.plugins.cursegradle.get().getPluginId()
 
 evaluationDependsOn(":common")
 
@@ -135,26 +133,55 @@ publishing {
     }
 }
 
-if (System.getenv("CURSEFORGE_TOKEN")) {
-    curseforge {
-        apiKey = System.getenv("CURSEFORGE_TOKEN")
-        project {
-            id = '928703'
-            releaseType = 'release'
-            changelogType = 'markdown'
-            changelog = file('../CHANGELOG.md')
+modrinth {
+    debugMode = providers.environmentVariable("MODRINTH_TOKEN").getOrNull() == null
 
-            addGameVersion libs.versions.minecraft.get()
-            addGameVersion 'NeoForge'
+    token = providers.environmentVariable("MODRINTH_TOKEN").getOrElse("")
 
-            mainArtifact(remapJar) {
-                displayName = 'RideableRavagers-' + project.version
-            }
+    projectId = 'rideableravagers'
+    versionNumber = version
+    versionName = "RideableRavagers-${version}"
+    versionType = 'release'
+    file = remapJar.archiveFile
+    changelog = rootProject.file('CHANGELOG.md').text
+    gameVersions = [libs.versions.minecraft.get()]
+    loaders = ['neoforge']
+    detectLoaders = false
+
+    dependencies {
+        // A special DSL for creating dependencies
+        // scope.type
+        // The scope can be `required`, `optional`, `incompatible`, or `embedded`
+        // The type can either be `project` or `version`
+        embedded.project "midnightlib"
+    }
+}
+
+curseforge {
+    curseGradleOptions.debug = providers.environmentVariable("CURSEFORGE_TOKEN").getOrNull() == null
+
+    apiKey = providers.environmentVariable("CURSEFORGE_TOKEN").getOrElse("invalid")
+
+    curseGradleOptions.javaIntegration = false
+    curseGradleOptions.forgeGradleIntegration = false
+    curseGradleOptions.javaVersionAutoDetect = false
+
+    //noinspection GroovyAssignabilityCheck
+    project {
+        id = '928703'
+        releaseType = 'release'
+        changelogType = 'markdown'
+        changelog = rootProject.file('CHANGELOG.md')
+
+        addGameVersion libs.versions.minecraft.get()
+        addGameVersion 'NeoForge'
+
+        mainArtifact(remapJar) {
+            displayName = "RideableRavagers-${version}"
         }
-        options {
-            javaIntegration = false
-            forgeGradleIntegration = false
-            javaVersionAutoDetect = false
+
+        relations {
+            embeddedLibrary 'midnightlib'
         }
     }
 }

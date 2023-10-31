@@ -51,4 +51,5 @@ vineflower = { id = "io.github.juuxel.loom-vineflower", version = "1.11.0" }
 paperweight_userdev = { id = "io.papermc.paperweight.userdev", version = "1.5.5" }
 shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 
+minotaur = { id = "com.modrinth.minotaur", version = "2.8.4" }
 cursegradle = { id = "com.matthewprenger.cursegradle", version = "1.4.0" }

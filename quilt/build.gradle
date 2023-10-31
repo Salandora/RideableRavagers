@@ -1,6 +1,6 @@
-plugins {
-    alias libs.plugins.shadow
-}
+apply plugin: libs.plugins.shadow.get().getPluginId()
+apply plugin: libs.plugins.minotaur.get().getPluginId()
+apply plugin: libs.plugins.cursegradle.get().getPluginId()
 
 architectury {
     platformSetupLoomIde()
@@ -88,85 +88,57 @@ publishing {
     }
 }
 
+modrinth {
+    debugMode = providers.environmentVariable("MODRINTH_TOKEN").getOrNull() == null
 
-/*
-apply plugin: libs.plugins.quilt.loom.get().getPluginId()
+    token = providers.environmentVariable("MODRINTH_TOKEN").getOrElse("")
 
-base.archivesName = "${mod_name}-quilt-${libs.versions.minecraft.get()}-${version}"
+    projectId = 'rideableravagers'
+    versionNumber = version
+    versionName = "RideableRavagers-${version}"
+    versionType = 'release'
+    file = remapJar.archiveFile
+    changelog = rootProject.file('CHANGELOG.md').text
+    gameVersions = [libs.versions.minecraft.get()]
+    loaders = ['quilt']
+    detectLoaders = false
 
-dependencies {
-    minecraft libs.minecraft
-    mappings loom.officialMojangMappings()
-
-    modImplementation libs.quilt.loader
-    modImplementation libs.quilted.fabric.api
-
-    implementation project(path: ':common', configuration: 'namedElements')
-}
-
-loom {
-    runtimeOnlyLog4j = true
-
-    if (project(":common:").file("src/main/resources/${mod_id}.accesswidener").exists()) {
-        accessWidenerPath.set(project(":common:").file("src/main/resources/${mod_id}.accesswidener"))
-    }
-
-    mixin {
-        defaultRefmapName.set("${mod_id}.refmap.json")
-    }
-
-    mods {
-        "${mod_id}" {
-            sourceSet("main")
-            sourceSet("main", project(":common"))
-        }
-    }
-
-    runs {
-        client {
-            client()
-            setConfigName("Quilt Client")
-        }
-        server {
-            server()
-            setConfigName("Quilt Server")
-        }
-
-        configureEach {
-            runDir "../run/${it.configName.replace(' ', '_')}"
-            ideConfigGenerated(true)
-        }
+    dependencies {
+        // A special DSL for creating dependencies
+        // scope.type
+        // The scope can be `required`, `optional`, `incompatible`, or `embedded`
+        // The type can either be `project` or `version`
+        required.project "fabric-api"
+        embedded.project "midnightlib"
     }
 }
 
-processResources {
-    from project(":common").sourceSets.main.resources
-    from project(":common").sourceSets.client.resources
-}
+curseforge {
+    curseGradleOptions.debug = providers.environmentVariable("CURSEFORGE_TOKEN").getOrNull() == null
 
-tasks.withType(JavaCompile).configureEach {
-    source(project(":common").sourceSets.main.allSource)
-    source(project(":common").sourceSets.client.allSource)
-}
-tasks.withType(Javadoc).configureEach {
-    source(project(":common").sourceSets.main.allJava)
-    source(project(":common").sourceSets.client.allJava)
-}
-tasks.named("sourcesJar", Jar) {
-    from(project(":common").sourceSets.main.allSource)
-    from(project(":common").sourceSets.client.allSource)
-}
+    apiKey = providers.environmentVariable("CURSEFORGE_TOKEN").getOrElse("")
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId base.archivesName.get()
-            from components.java
+    curseGradleOptions.javaIntegration = false
+    curseGradleOptions.forgeGradleIntegration = false
+    curseGradleOptions.javaVersionAutoDetect = false
+
+    //noinspection GroovyAssignabilityCheck
+    project {
+        id = '928703'
+        releaseType = 'release'
+        changelogType = 'markdown'
+        changelog = rootProject.file('CHANGELOG.md')
+
+        addGameVersion libs.versions.minecraft.get()
+        addGameVersion 'Quilt'
+
+        mainArtifact(remapJar) {
+            displayName = "RideableRavagers-${version}"
+        }
+
+        relations {
+            requiredDependency 'fabric-api'
+            embeddedLibrary 'midnightlib'
         }
     }
-    repositories {
-        maven {
-            url "file://" + System.getenv("local_maven")
-        }
-    }
-}*/
+}
