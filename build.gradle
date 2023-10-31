@@ -1,8 +1,10 @@
 plugins {
     alias libs.plugins.architectury.plugin apply false
     alias libs.plugins.architectury.loom apply false
+    alias libs.plugins.vineflower apply false
     alias libs.plugins.paperweight.userdev apply false
     alias libs.plugins.shadow apply false
+    alias libs.plugins.minotaur apply false
     alias libs.plugins.cursegradle apply false
 }
 
@@ -13,6 +15,7 @@ subprojects {
 
     apply plugin: libs.plugins.architectury.plugin.get().getPluginId()
     apply plugin: libs.plugins.architectury.loom.get().getPluginId()
+    apply plugin: libs.plugins.vineflower.get().getPluginId()
 
     architectury {
         minecraft = libs.versions.minecraft.get()
@@ -42,9 +45,11 @@ allprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'java-library'
 
-
     base.archivesName = rootProject.mod_name
     version = "${rootProject.mod_version}-${libs.versions.minecraft.get()}-${project.name}"
+    if (rootProject == project) {
+        version = "${rootProject.mod_version}-${libs.versions.minecraft.get()}"
+    }
 
     java {
         toolchain {

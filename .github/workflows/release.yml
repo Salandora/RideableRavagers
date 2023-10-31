@@ -50,7 +50,7 @@ jobs:
         env:
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
           RELEASE: true
-        run: ./gradlew build publish curseforge
+        run: ./gradlew build publish curseforge modrinth
 
       - name: Create Release
         if: ${{ !env.ACT }}
@@ -99,4 +99,16 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./ignite_purpur/build/libs/RideableRavagers-${{ steps.composite_version.outputs.composite_version }}-ignite_purpur.jar
           asset_name: RideableRavagers-${{ steps.composite_version.outputs.composite_version }}-ignite_purpur.jar
+          asset_content_type: application/java-archive
+
+      - name: Upload Ignite Datapack Asset
+        if: ${{ !env.ACT }}
+        id: upload_ignite_datapack_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./assets/RideableRavagers-ignite_purpur-datapack.zip
+          asset_name: RideableRavagers-ignite_purpur-datapack.zip
           asset_content_type: application/java-archive
