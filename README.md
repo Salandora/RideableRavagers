@@ -1,4 +1,4 @@
-<p class="center">
+<p align="center">
     <img src="https://cdn.discordapp.com/attachments/1161724802810265612/1167827096031199232/Logo-Text.png?ex=654f8abc&is=653d15bc&hm=641934cf874726c3241a5c5167d9e0d7046a6003aae9e1392ae95827264025dd&" width="230" height="92" alt="RideableRavagers" title ="RideableRavagers">
 </p>
 
