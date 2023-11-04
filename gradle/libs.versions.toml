@@ -9,8 +9,8 @@ fabricApi_biome_api_v1 = "13.0.11"
 forge = "1.20.2-48.0.1"
 forge_range = "[48,)"
 
-neoforge = "1.20.1-47.1.79"
-neo_range = "[47,)"
+neoforge = "1.20.2-20.2.28"
+neo_range = "[20,)"
 
 ignite = "0.8.0"
 purpur_api = "1.20.2-R0.1-SNAPSHOT"
