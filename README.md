@@ -4,24 +4,22 @@ This was a request by FairyFlorra and I found the idea interesting, so here is t
 
 This mod allows you to breed Ravagers with steak. Beware, they won't like you even if you feed them.
 
-<img src="https://imgur.com/Le5PAjb.gif" width="480" height="360" alt="Breeding Ravagers" title="Breeding Ravagers">
-
+[![Breeding Ravagers](https://img.youtube.com/vi/s_N3ovGf13g/hqdefault.jpg)](https://youtu.be/s_N3ovGf13g)
 
 It is possible to lead baby ravagers as well as adult Ravagers
 
-<img src="https://imgur.com/UZcomFD.gif" width="300" height="225" alt="Lead Ravagers" title="Lead Ravagers">
-<img src="https://imgur.com/REGAXva.gif" width="300" height="225" alt="Lead Ravagers" title="Lead Ravagers">
+[![Lead Ravagers](https://img.youtube.com/vi/xCn2bmItGTM/hqdefault.jpg)](https://youtu.be/xCn2bmItGTM)
+[![Lead Ravagers](https://img.youtube.com/vi/F0EBSs5-XtA/hqdefault.jpg)](https://youtu.be/F0EBSs5-XtA)
 
 
 The offspring can be tamed by feeding it more steak, if you don't feed it steak it will grow up to an untamed Ravager.
 
-<img src="https://imgur.com/Hyxutcx.gif" width="480" height="360" alt="Tame baby Ravagers" title="Tame baby Ravagers">
-
+[![Tame baby Ravagers](https://img.youtube.com/vi/PfsTMrZRkEk/hqdefault.jpg)](https://youtu.be/PfsTMrZRkEk)
 
 Once a tamed ravager grow's up you can attach a saddle to it by right clicking it with a saddle.
 
-<img src="https://imgur.com/lyHqLVF.gif" width="480" height="360" alt="Attach a saddle to a Ravager" title="Attach a saddle to a Ravager">
-<img src="https://imgur.com/DREC8Tr.gif" width="480" height="360" alt="Ride the Ravager" title="Ride the Ravager">
+[![Attach a saddle to a Ravager](https://img.youtube.com/vi/EbkobrlroGE/hqdefault.jpg)](https://youtu.be/EbkobrlroGE)
+[![Ride the Ravager](https://img.youtube.com/vi/vXAqpKguH_A/hqdefault.jpg)](https://youtu.be/vXAqpKguH_A)
 
 
 You can also make Ravagers spawn in Savannah biomes through the config menu.
