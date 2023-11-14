@@ -36,6 +36,9 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build
+        env:
+          USERNAME: ${{ secrets.USERNAME }}
+          READ_PACKAGES_TOKEN: ${{ secrets.READ_PACKAGES_TOKEN }}
         run: ./gradlew build --stacktrace --warning-mode=fail -Porg.gradle.parallel.threads=4
 
       - name: Upload Artifacts

@@ -34,8 +34,16 @@ subprojects {
     }
 
     repositories {
+        mavenLocal()
         mavenCentral()
         maven { url "https://api.modrinth.com/maven" }
+        maven {
+            url = uri("https://maven.pkg.github.com/Salandora/MidnightLib")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("READ_PACKAGES_TOKEN")
+            }
+        }
     }
 }
 

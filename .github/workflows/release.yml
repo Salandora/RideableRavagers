@@ -52,6 +52,8 @@ jobs:
       - name: Publish
         if: ${{ !env.ACT }}
         env:
+          USERNAME: ${{ secrets.USERNAME }}
+          READ_PACKAGES_TOKEN: ${{ secrets.READ_PACKAGES_TOKEN }}
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           RELEASE: true
