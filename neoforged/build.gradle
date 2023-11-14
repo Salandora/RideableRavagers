@@ -71,7 +71,9 @@ processResources {
             "minecraft_version"       : libs.versions.minecraft.get(),
             "minecraft_version_range" : libs.versions.mc.range.get(),
 
-            "neo_version_range"       : libs.versions.neo.range.get()
+            "neo_version_range"       : libs.versions.neo.range.get(),
+
+            "midnightlib_version_range": libs.versions.midnightlib.forge.range.get()
     ]
 
     inputs.properties(expandProps)
