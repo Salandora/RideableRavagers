@@ -22,10 +22,10 @@ quilted_fabric_api = "7.3.1+0.89.3-1.20.2"
 jetbrains_annotations = "24.0.1"
 findbugs = "3.0.1"
 
-midnightlib_fabric = "1.5.0-fabric"
-midnightlib_forge = "1.5.0-forge"
+midnightlib = "1.5.0-1.20.2"
+midnightlib_forge_range = "[1.5.0,)"
 
-modmenu = "7.2.2"
+modmenu = "8.0.0"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
@@ -46,8 +46,12 @@ quilted_fabric_api = { module = "org.quiltmc.quilted-fabric-api:quilted-fabric-a
 jetbrains_annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains_annotations" }
 findbugs = { module = "com.google.code.findbugs:jsr305", version.ref = "findbugs" }
 
-midnightlib_fabric = { module = "maven.modrinth:midnightlib", version.ref = "midnightlib_fabric" }
-midnightlib_forge = { module = "maven.modrinth:midnightlib", version.ref = "midnightlib_forge" }
+#midnightlib_fabric = { module = "maven.modrinth:midnightlib", version.ref = "midnightlib_fabric" }
+#midnightlib_forge = { module = "maven.modrinth:midnightlib", version.ref = "midnightlib_forge" }
+
+midnightlib_common = { module = "com.github.salandora:midnightlib-common", version.ref = "midnightlib" }
+midnightlib_fabric = { module = "com.github.salandora:midnightlib-fabric", version.ref = "midnightlib" }
+midnightlib_forge = { module = "com.github.salandora:midnightlib-forge", version.ref = "midnightlib" }
 
 modmenu = { module = "com.terraformersmc:modmenu", version.ref = "modmenu" }
 
