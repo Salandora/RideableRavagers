@@ -1,6 +1,6 @@
 package com.github.salandora.rideableravagers.mixins;
 
-import com.github.salandora.rideableravagers.entity.Tamed;
+import com.github.salandora.rideableravagers.entity.Tamable;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
@@ -30,7 +30,7 @@ public class IronGolemEntityMixin extends AbstractGolem {
 					Class<?> targetClazz = accessor.getTargetType();
 					if (targetClazz == Mob.class) {
 						accessor.getTargetConditions().selector(entity -> {
-								boolean tamed = entity instanceof Tamed tamedEntity && tamedEntity.isTamed();
+								boolean tamed = entity instanceof Tamable tamedEntity && tamedEntity.rideableRavagers$isTamed();
 								return entity instanceof Enemy && !(entity instanceof Creeper) && !tamed;
 							}
 						);

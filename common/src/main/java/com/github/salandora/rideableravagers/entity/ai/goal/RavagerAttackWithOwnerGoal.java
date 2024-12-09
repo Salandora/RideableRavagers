@@ -1,6 +1,6 @@
 package com.github.salandora.rideableravagers.entity.ai.goal;
 
-import com.github.salandora.rideableravagers.entity.Tamed;
+import com.github.salandora.rideableravagers.entity.Tamable;
 import java.util.EnumSet;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -9,19 +9,19 @@ import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.monster.Ravager;
 
 public class RavagerAttackWithOwnerGoal extends TargetGoal {
-	private final Tamed tameable;
+	private final Tamable tameable;
 	private LivingEntity attacking;
 	private int lastAttackTime;
 
 	public RavagerAttackWithOwnerGoal(Ravager tameable) {
 		super(tameable, false);
-		this.tameable = (Tamed) tameable;
+		this.tameable = (Tamable) tameable;
 		this.setFlags(EnumSet.of(Goal.Flag.TARGET));
 	}
 
 	@Override
 	public boolean canUse() {
-		if (this.tameable.isTamed()) {
+		if (this.tameable.rideableRavagers$isTamed()) {
 			LivingEntity livingEntity = this.tameable.getOwner();
 			if (livingEntity == null) {
 				return false;
@@ -30,7 +30,7 @@ public class RavagerAttackWithOwnerGoal extends TargetGoal {
 				int i = livingEntity.getLastHurtMobTimestamp();
 				return i != this.lastAttackTime
 						&& this.canAttack(this.attacking, TargetingConditions.DEFAULT)
-						&& this.tameable.canAttackWithOwner(this.attacking, livingEntity);
+						&& this.tameable.rideableRavagers$canAttackWithOwner(this.attacking, livingEntity);
 			}
 		} else {
 			return false;

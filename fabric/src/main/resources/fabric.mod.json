@@ -16,7 +16,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.github.salandora.rideableravagers.fabric.RideableRavagersMod"
+      "com.github.salandora.rideableravagers.fabric.RideableRavagersFabric"
     ]
   },
 
@@ -26,9 +26,9 @@
 
   "depends": {
     "fabricloader": ">=0.18.1",
-    "minecraft": ">=1.20.1",
+    "minecraft": ">=1.21.1",
     "fabric-api": "*",
     "midnightlib": ">=1.9.1",
-    "java": ">=17"
+    "java": ">=21"
   }
 }

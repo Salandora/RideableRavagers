@@ -14,16 +14,16 @@ import org.spongepowered.asm.mixin.Mixin;
 @Mixin(RavagerModel.class)
 public abstract class RavagerEntityModelMixin extends HierarchicalModel<Ravager> {
 	@Override
-	public void renderToBuffer(@NotNull PoseStack matrices, @NotNull VertexConsumer vertices, int light, int overlay, float red, float green, float blue, float alpha) {
+	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, int color) {
 		if (this.young) {
-			matrices.pushPose();
+			poseStack.pushPose();
 			float f = 1.0F / 2.0f;
-			matrices.scale(f, f, f);
-			matrices.translate(0.0F, 24.0F / 16.0F, 0.0F);
-			super.renderToBuffer(matrices, vertices, light, overlay, red, green, blue, alpha);
-			matrices.popPose();
+			poseStack.scale(f, f, f);
+			poseStack.translate(0.0F, 24.0F / 16.0F, 0.0F);
+			super.renderToBuffer(poseStack, vertexConsumer, light, overlay, color);
+			poseStack.popPose();
 		} else {
-			super.renderToBuffer(matrices, vertices, light, overlay, red, green, blue, alpha);
+			super.renderToBuffer(poseStack, vertexConsumer, light, overlay, color);
 		}
 	}
 }

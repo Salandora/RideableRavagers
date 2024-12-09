@@ -1,0 +1,35 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "GNU-AGPL-v3.0"
+
+[[mods]]
+modId = "rideableravagers"
+version = "${version}"
+displayName = "RideableRavagers"
+logoFile = "assets/rideableravagers/icon.png"
+authors = "Salandora"
+description = '''Enables you to breed ravagers and ride the tamed ones'''
+
+[[dependencies.rideableravagers]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.rideableravagers]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.rideableravagers]]
+modId = "midnightlib"
+type = "required"
+versionRange = "[1.9.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "rideableravagers.common.mixins.json"
