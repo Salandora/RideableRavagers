@@ -25,10 +25,10 @@
   ],
 
   "depends": {
-    "fabricloader": ">=${fabric_loader_version}",
-    "fabric-biome-api-v1": ">=${fabric_biome_api_v1}",
-    "minecraft": ">=${minecraft_version}",
-    "midnightlib": ">=${midnightlib_version}",
+    "fabricloader": ">=0.18.1",
+    "minecraft": ">=1.20.1",
+    "fabric-api": "*",
+    "midnightlib": ">=1.9.1",
     "java": ">=17"
   }
 }
