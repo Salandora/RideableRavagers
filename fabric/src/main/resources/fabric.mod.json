@@ -17,6 +17,9 @@
   "entrypoints": {
     "main": [
       "com.github.salandora.rideableravagers.fabric.RideableRavagersFabric"
+    ],
+    "client": [
+      "com.github.salandora.rideableravagers.fabric.RideableRavagersClientMod"
     ]
   },
 
@@ -26,7 +29,7 @@
 
   "depends": {
     "fabricloader": ">=0.18.1",
-    "minecraft": ">=1.21.1",
+    "minecraft": ">=1.21.4",
     "fabric-api": "*",
     "midnightlib": ">=1.9.1",
     "java": ">=21"

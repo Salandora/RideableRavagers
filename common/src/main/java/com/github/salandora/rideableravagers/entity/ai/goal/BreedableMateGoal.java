@@ -10,14 +10,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
-import net.minecraft.world.level.Level;
 
 public class BreedableMateGoal extends Goal {
 	private static final TargetingConditions VALID_MATE_PREDICATE = TargetingConditions.forNonCombat().range(8.0).ignoreLineOfSight();
 	protected final BreedableEntity breedableEntity;
 	protected final Mob entity;
 	private final Class<? extends LivingEntity> entityClass;
-	protected final Level world;
+	protected final ServerLevel level;
 	@Nullable
 	protected LivingEntity mate;
 	private int timer;
@@ -26,7 +25,7 @@ public class BreedableMateGoal extends Goal {
 	public BreedableMateGoal(Mob entity, double speed, Class<? extends LivingEntity> entityClass) {
 		this.breedableEntity = (BreedableEntity) entity;
 		this.entity = entity;
-		this.world = entity.level();
+		this.level = getServerLevel(entity);
 		this.entityClass = entityClass;
 		this.speed = speed;
 		this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
@@ -65,7 +64,7 @@ public class BreedableMateGoal extends Goal {
 
 	@Nullable
 	private LivingEntity findMate() {
-		List<? extends LivingEntity> list = this.world.getNearbyEntities(this.entityClass, VALID_MATE_PREDICATE, this.entity, this.entity.getBoundingBox().inflate(8.0));
+		List<? extends LivingEntity> list = this.level.getNearbyEntities(this.entityClass, VALID_MATE_PREDICATE, this.entity, this.entity.getBoundingBox().inflate(8.0));
 		double d = Double.MAX_VALUE;
 		LivingEntity mate = null;
 
@@ -80,6 +79,6 @@ public class BreedableMateGoal extends Goal {
 	}
 
 	protected void breed() {
-		this.breedableEntity.breed((ServerLevel)this.world, (BreedableEntity) this.mate);
+		this.breedableEntity.breed(this.level, (BreedableEntity) this.mate);
 	}
 }

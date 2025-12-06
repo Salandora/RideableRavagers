@@ -1,6 +1,7 @@
 package com.github.salandora.rideableravagers.entity.ai.goal;
 
 import com.github.salandora.rideableravagers.mixins.TemptGoalAccessor;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.goal.TemptGoal;
@@ -16,7 +17,7 @@ public class RavagerTemptGoal extends TemptGoal {
 		((TemptGoalAccessor)this).getTargetingConditions().selector(this::shouldFollow2);
 	}
 
-	public boolean shouldFollow2(LivingEntity entity) {
+	public boolean shouldFollow2(LivingEntity entity, ServerLevel level) {
 		return ((OwnableEntity)this.ravager).getOwnerUUID() != null && ((OwnableEntity)this.ravager).getOwner() == entity && ((TemptGoalAccessor)this).invokeShouldFollow(entity);
 	}
 }

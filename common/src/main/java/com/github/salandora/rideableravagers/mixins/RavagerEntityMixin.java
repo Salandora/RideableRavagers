@@ -8,6 +8,8 @@ import com.github.salandora.rideableravagers.entity.ai.goal.BreedableMateGoal;
 import com.github.salandora.rideableravagers.entity.ai.goal.RavagerAttackWithOwnerGoal;
 import com.github.salandora.rideableravagers.entity.ai.goal.RavagerTemptGoal;
 import com.github.salandora.rideableravagers.entity.ai.goal.RavagerTrackOwnerAttackerGoal;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -19,8 +21,20 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityEvent;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.Saddleable;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
@@ -81,6 +95,15 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 
 	protected RavagerEntityMixin(EntityType<? extends Raider> entityType, Level world) {
 		super(entityType, world);
+	}
+
+	@WrapOperation(
+			method = "createAttributes",
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/monster/Monster;createMonsterAttributes()Lnet/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder;")
+	)
+	private static AttributeSupplier.Builder rideableRavagers$createAttributes(Operation<AttributeSupplier.Builder> original) {
+		AttributeSupplier.Builder builder = original.call();
+		return builder.add(Attributes.TEMPT_RANGE, 10.0);
 	}
 
 	@Unique
@@ -265,24 +288,27 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 		}
 	}
 
-	@Inject(method = "registerGoals", at = @At("TAIL"))
+	@Inject(
+			method = "registerGoals",
+			at = @At("TAIL")
+	)
 	private void rideableRavagers$initGoals(CallbackInfo ci) {
 		Ravager ravager = (Ravager)(Object)this;
 		this.goalSelector.addGoal(2, new BreedableMateGoal(this, 1.0, Ravager.class));
 		this.goalSelector.addGoal(3, new RavagerTemptGoal(ravager, 1.25, Ingredient.of(Items.COOKED_BEEF), false));
 
 		this.targetSelector.getAvailableGoals().stream()
-				.filter(goal -> goal.getGoal() instanceof net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal<?>)
-				.map(goal -> (net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal<?>)goal.getGoal())
+				.filter(goal -> goal.getGoal() instanceof NearestAttackableTargetGoal<?>)
+				.map(goal -> (NearestAttackableTargetGoal<?>)goal.getGoal())
 				.forEach(goal -> {
 					NearestAttackableTargetGoalAccessor accessor = (NearestAttackableTargetGoalAccessor)goal;
 					Class<?> targetClazz = accessor.getTargetType();
 					if (targetClazz == Player.class) {
-						accessor.getTargetConditions().selector(entity -> !this.rideableRavagers$isTamed());
+						accessor.getTargetConditions().selector((entity, level) -> !this.rideableRavagers$isTamed());
 					} else if (targetClazz == AbstractVillager.class) {
-						accessor.getTargetConditions().selector(entity -> !this.rideableRavagers$isTamed() && !entity.isBaby());
+						accessor.getTargetConditions().selector((entity, level) -> !this.rideableRavagers$isTamed() && !entity.isBaby());
 					} else if (targetClazz == IronGolem.class) {
-						accessor.getTargetConditions().selector(entity -> !this.rideableRavagers$isTamed());
+						accessor.getTargetConditions().selector((entity, level) -> !this.rideableRavagers$isTamed());
 					}
 				});
 
@@ -291,14 +317,14 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	}
 
 	@Override
-	public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
+	public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance difficultyInstance, EntitySpawnReason entitySpawnReason, @Nullable SpawnGroupData spawnGroupData) {
 		rideableRavagers$setFlag(rideableRavagers$SADDLED_FLAG, true);
-		return super.finalizeSpawn(serverLevelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
+		return super.finalizeSpawn(serverLevelAccessor, difficultyInstance, entitySpawnReason, spawnGroupData);
 	}
 
 	@Override
-	public Mob createChild(ServerLevel world, BreedableEntity other) {
-		Ravager entity = EntityType.RAVAGER.create(world);
+	public Mob createChild(ServerLevel level, BreedableEntity other) {
+		Ravager entity = EntityType.RAVAGER.create(level, EntitySpawnReason.BREEDING);
 		((BreedableEntity) entity).setBred(true);
 		((RavagerEntityMixin) (Object) entity).rideableRavagers$setFlag(rideableRavagers$SADDLED_FLAG, false);
 		return entity;
@@ -312,7 +338,7 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 			if (!this.level().isClientSide) {
 				this.rideableRavagers$putPlayerOnBack(player);
 			}
-			return InteractionResult.sidedSuccess(this.level().isClientSide);
+			return InteractionResult.SUCCESS;
 		} else if (breedingItem) {
 			int i = this.getBreedingAge();
 			if (!this.level().isClientSide && i == 0 && this.canEat()) {
@@ -332,7 +358,7 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 				}
 
 				this.rideableRavagers$growUp(getSpeedUpSecondsWhenFeeding(-i), true);
-				return InteractionResult.sidedSuccess(this.level().isClientSide);
+				return InteractionResult.SUCCESS;
 			}
 
 			if (this.level().isClientSide) {
@@ -398,10 +424,10 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	}
 
 	@Override
-	protected void dropEquipment() {
-		super.dropEquipment();
+	protected void dropEquipment(ServerLevel serverLevel) {
+		super.dropEquipment(serverLevel);
 		if (this.isSaddled()) {
-			this.spawnAtLocation(Items.SADDLE);
+			this.spawnAtLocation(serverLevel, Items.SADDLE);
 		}
 	}
 
@@ -437,13 +463,13 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 
 			do {
 				double h = this.level().getBlockFloorHeight(mutable);
-				if ((double)mutable.getY() + h > g) {
+				if (mutable.getY() + h > g) {
 					break;
 				}
 
 				if (DismountHelper.isBlockFloorValid(h)) {
 					AABB box = passenger.getLocalBoundsForPose(entityPose);
-					Vec3 vec3d = new Vec3(d, (double)mutable.getY() + h, f);
+					Vec3 vec3d = new Vec3(d, mutable.getY() + h, f);
 					if (DismountHelper.canDismountTo(this.level(), passenger, box.move(vec3d))) {
 						passenger.setPose(entityPose);
 						return vec3d;
@@ -451,7 +477,7 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 				}
 
 				mutable.move(Direction.UP);
-			} while(!((double)mutable.getY() < g));
+			} while(!(mutable.getY() < g));
 		}
 
 		return null;
@@ -483,7 +509,10 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 		}
 	}
 
-	@Inject(method = "aiStep", at = @At("HEAD"))
+	@Inject(
+			method = "aiStep",
+			at = @At("HEAD")
+	)
 	private void rideableRavagers$tickMovement(CallbackInfo ci) {
 		if (!this.level().isClientSide && this.isAlive()) {
 			int i = this.getBreedingAge();
@@ -495,7 +524,10 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 		}
 	}
 
-	@Inject(method = "addAdditionalSaveData", at=@At("HEAD"))
+	@Inject(
+			method = "addAdditionalSaveData",
+			at = @At("HEAD")
+	)
 	private void rideableRavagers$writeCustomDataToNbt(CompoundTag nbt, CallbackInfo ci) {
 		nbt.putInt("Age", this.getBreedingAge());
 		nbt.putInt("ForcedAge", this.rideableRavagers$forcedAge);
@@ -511,7 +543,10 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 		}
 	}
 
-	@Inject(method = "readAdditionalSaveData", at=@At("HEAD"))
+	@Inject(
+			method = "readAdditionalSaveData",
+			at = @At("HEAD")
+	)
 	private void rideableRavagers$readCustomDataToNbt(CompoundTag nbt, CallbackInfo ci) {
 		this.setBreedingAge(nbt.getInt("Age"));
 		this.rideableRavagers$forcedAge = nbt.getInt("ForcedAge");
@@ -530,7 +565,11 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 		this.rideableRavagers$lovingPlayer = nbt.hasUUID("LoveCause") ? nbt.getUUID("LoveCause") : null;
 	}
 
-	@Inject(method = "handleEntityEvent", at = @At("HEAD"), cancellable = true)
+	@Inject(
+			method = "handleEntityEvent",
+			at = @At("HEAD"),
+			cancellable = true
+	)
 	private void rideableRavagers$handleStatus(byte status, CallbackInfo ci) {
 		if (status == EntityEvent.IN_LOVE_HEARTS) {
 			for(int i = 0; i < 7; ++i) {

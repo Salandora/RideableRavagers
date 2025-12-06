@@ -2,6 +2,7 @@ package com.github.salandora.rideableravagers.neoforge;
 
 import com.github.salandora.rideableravagers.RideableRavagers;
 import com.github.salandora.rideableravagers.attachment.Attachments;
+import com.github.salandora.rideableravagers.client.RideableRavagersClient;
 import com.github.salandora.rideableravagers.neoforge.init.BiomeCodecInit;
 import com.github.salandora.rideableravagers.neoforge.networking.SetAttachmentType;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,6 +11,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -30,12 +32,13 @@ public class RideableRavagersNeoForge {
 		BiomeCodecInit.BIOME_MODIFIER_SERIALIZERS.register(modEventBus);
 
 		modEventBus.addListener(RideableRavagersNeoForge::registerPayloads);
+		modEventBus.addListener(RideableRavagersNeoForge::registerAdditionalModelLayers);
 
 		IEventBus eventBus = NeoForge.EVENT_BUS;
 		eventBus.addListener(RideableRavagersNeoForge::onStartTracking);
 	}
 
-	public static void registerPayloads(final RegisterPayloadHandlersEvent event) {
+	private static void registerPayloads(final RegisterPayloadHandlersEvent event) {
 		final PayloadRegistrar registrar = event.registrar("1");
 
 		registrar.playToClient(
@@ -45,7 +48,7 @@ public class RideableRavagersNeoForge {
 		);
 	}
 
-	public static void onStartTracking(PlayerEvent.StartTracking event) {
+	private static void onStartTracking(PlayerEvent.StartTracking event) {
 		if (event.getTarget() instanceof Ravager rav) {
 			ServerPlayer player = (ServerPlayer) event.getEntity();
 			PacketDistributor.sendToPlayer(player,
@@ -53,5 +56,9 @@ public class RideableRavagersNeoForge {
 					SetAttachmentType.create(rav.getId(), Attachments.RAVAGER_OWNER, rav.getData(Attachments.RAVAGER_OWNER::attachmentType), player.registryAccess())
 			);
 		}
+	}
+
+	private static void registerAdditionalModelLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {
+		event.registerLayerDefinition(RideableRavagersClient.RAVAGER_BABY, RideableRavagersClient::createBabyRavagerLayer);
 	}
 }

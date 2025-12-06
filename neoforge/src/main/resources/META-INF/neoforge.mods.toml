@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[1,)"
+loaderVersion = "[4,)"
 license = "GNU-AGPL-v3.0"
 
 [[mods]]
@@ -13,14 +13,14 @@ description = '''Enables you to breed ravagers and ride the tamed ones'''
 [[dependencies.rideableravagers]]
 modId = "neoforge"
 type = "required"
-versionRange = "[21.1,)"
+versionRange = "[21.4,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.rideableravagers]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21,)"
+versionRange = "[1.21.4,1.21.6)"
 ordering = "NONE"
 side = "BOTH"
 

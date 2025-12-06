@@ -31,7 +31,7 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api}"
 
-    modImplementation include("eu.midnightdust:midnightlib:${rootProject.midnightlib}-fabric")
+    modImplementation include("eu.midnightdust:midnightlib:${rootProject.midnightlib}-fabric") { transitive = false }
 
     // Development QoL
     modLocalRuntime "com.terraformersmc:modmenu:${rootProject.modmenu}"

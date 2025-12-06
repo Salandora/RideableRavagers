@@ -29,7 +29,7 @@ public class IronGolemEntityMixin extends AbstractGolem {
 					NearestAttackableTargetGoalAccessor accessor = (NearestAttackableTargetGoalAccessor)goal;
 					Class<?> targetClazz = accessor.getTargetType();
 					if (targetClazz == Mob.class) {
-						accessor.getTargetConditions().selector(entity -> {
+						accessor.getTargetConditions().selector((entity, level) -> {
 								boolean tamed = entity instanceof Tamable tamedEntity && tamedEntity.rideableRavagers$isTamed();
 								return entity instanceof Enemy && !(entity instanceof Creeper) && !tamed;
 							}
