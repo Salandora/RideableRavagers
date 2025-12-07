@@ -18,6 +18,6 @@ public class RavagerTemptGoal extends TemptGoal {
 	}
 
 	public boolean shouldFollow2(LivingEntity entity, ServerLevel level) {
-		return ((OwnableEntity)this.ravager).getOwnerUUID() != null && ((OwnableEntity)this.ravager).getOwner() == entity && ((TemptGoalAccessor)this).invokeShouldFollow(entity);
+		return ((OwnableEntity)this.ravager).getOwner() != null && ((OwnableEntity)this.ravager).getOwner() == entity && ((TemptGoalAccessor)this).invokeShouldFollow(entity);
 	}
 }

@@ -10,10 +10,12 @@ import com.github.salandora.rideableravagers.entity.ai.goal.RavagerTemptGoal;
 import com.github.salandora.rideableravagers.entity.ai.goal.RavagerTrackOwnerAttackerGoal;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -29,15 +31,12 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.Saddleable;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.Ravager;
@@ -51,6 +50,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
@@ -63,21 +64,18 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static net.minecraft.world.entity.AgeableMob.getSpeedUpSecondsWhenFeeding;
 
-@SuppressWarnings({"AddedMixinMembersNamePattern", "DataFlowIssue"})
+@SuppressWarnings({"DataFlowIssue"})
 @Mixin(Ravager.class)
-public abstract class RavagerEntityMixin extends Raider implements BreedableEntity, Tamable, Saddleable {
+public abstract class RavagerEntityMixin extends Raider implements BreedableEntity, Tamable, OwnableEntity {
 	@Unique
 	private static final int rideableRavagers$TAMED_FLAG = 2;
 	@Unique
 	private static final int rideableRavagers$BABY_FLAG = 4;
 	@Unique
 	private static final int rideableRavagers$BRED_FLAG = 8;
-	@Unique
-	private static final int rideableRavagers$SADDLED_FLAG = 16;
 
 	@Unique
 	private int rideableRavagers$breedingAge;
@@ -86,20 +84,32 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	@Unique
 	private int rideableRavagers$loveTicks;
 
+	@Unique
 	@Nullable
-	@Unique
-	private UUID rideableRavagers$lovingPlayer;
-
-	@Unique
-	private boolean rideableRavagers$baby = false;
+	private EntityReference<ServerPlayer> rideableRavagers$loveCause;
 
 	protected RavagerEntityMixin(EntityType<? extends Raider> entityType, Level world) {
 		super(entityType, world);
 	}
 
+	@Inject(
+			method = "<init>",
+			at = @At(value = "RETURN")
+	)
+	private void rideableRavagers$init(EntityType<? extends Raider> entityType, Level level, CallbackInfo ci) {
+		EntityAttachment.INSTANCE.registerOnAttachmentSet(
+				this,
+				Attachments.RAVAGER_FLAGS,
+				(oldData, newData) -> this.refreshDimensions()
+		);
+	}
+
 	@WrapOperation(
 			method = "createAttributes",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/monster/Monster;createMonsterAttributes()Lnet/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder;")
+			at = @At(
+					value = "INVOKE",
+					target = "Lnet/minecraft/world/entity/monster/Monster;createMonsterAttributes()Lnet/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder;"
+			)
 	)
 	private static AttributeSupplier.Builder rideableRavagers$createAttributes(Operation<AttributeSupplier.Builder> original) {
 		AttributeSupplier.Builder builder = original.call();
@@ -121,11 +131,11 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	}
 
 	@Unique
-	public boolean isBred() {
+	public boolean rideableRavagers$isBred() {
 		return this.rideableRavagers$getFlag(rideableRavagers$BRED_FLAG);
 	}
 	@Unique
-	public void setBred(boolean bred) {
+	public void rideableRavagers$setBred(boolean bred) {
 		this.rideableRavagers$setFlag(rideableRavagers$BRED_FLAG, bred);
 	}
 
@@ -138,14 +148,24 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 		this.rideableRavagers$setFlag(rideableRavagers$TAMED_FLAG, tame);
 	}
 
+	@Nullable
+	public EntityReference<LivingEntity> getOwnerReference() {
+		return EntityAttachment.INSTANCE.getData(this, Attachments.RAVAGER_OWNER).orElse(null);
+	}
+
+	@Unique
+	public void rideableRavagers$setOwner(@Nullable LivingEntity livingEntity) {
+		EntityAttachment.INSTANCE.setData(this, Attachments.RAVAGER_OWNER, Optional.ofNullable(livingEntity).map(EntityReference::new));
+	}
+
 	@Override
 	public boolean requiresCustomPersistence() {
-		return super.requiresCustomPersistence() || this.isBred();
+		return super.requiresCustomPersistence() || this.rideableRavagers$isBred();
 	}
 
 	@Override
 	protected boolean shouldDespawnInPeaceful() {
-		return super.shouldDespawnInPeaceful() && !this.isBred();
+		return super.shouldDespawnInPeaceful() && !this.rideableRavagers$isBred();
 	}
 
 	@Override
@@ -165,29 +185,9 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 		}
 	}
 
-	@Nullable
-	@Unique
-	public UUID getOwnerUUID() {
-		return EntityAttachment.INSTANCE.getData(this, Attachments.RAVAGER_OWNER).orElse(null);
-	}
-	@Unique
-	public void rideableRavagers$setOwnerUuid(@Nullable UUID uuid) {
-		EntityAttachment.INSTANCE.setData(this, Attachments.RAVAGER_OWNER, Optional.ofNullable(uuid));
-	}
-
-	@Override
-	public void tick() {
-		super.tick();
-
-		if (this.rideableRavagers$baby != isBaby()) {
-			this.rideableRavagers$baby = isBaby();
-			this.refreshDimensions();
-		}
-	}
-
 	@Unique
 	public void rideableRavagers$growUp(int age, boolean overGrow) {
-		int newAge = this.getBreedingAge();
+		int newAge = this.rideableRavagers$getBreedingAge();
 		int oldAge = newAge;
 
 		newAge += age * 20;
@@ -196,18 +196,18 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 		}
 
 		int difference = newAge - oldAge;
-		this.setBreedingAge(newAge);
+		this.rideableRavagers$setBreedingAge(newAge);
 		if (overGrow) {
 			this.rideableRavagers$forcedAge += difference;
 		}
 
-		if (this.getBreedingAge() == 0) {
-			this.setBreedingAge(this.rideableRavagers$forcedAge);
+		if (this.rideableRavagers$getBreedingAge() == 0) {
+			this.rideableRavagers$setBreedingAge(this.rideableRavagers$forcedAge);
 		}
 	}
 
 	@Override
-	public int getBreedingAge() {
+	public int rideableRavagers$getBreedingAge() {
 		if (this.level().isClientSide) {
 			return this.rideableRavagers$getFlag(rideableRavagers$BABY_FLAG) ? -1 : 1;
 		} else {
@@ -216,8 +216,8 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	}
 
 	@Override
-	public void setBreedingAge(int age) {
-		int i = this.getBreedingAge();
+	public void rideableRavagers$setBreedingAge(int age) {
+		int i = this.rideableRavagers$getBreedingAge();
 		this.rideableRavagers$breedingAge = age;
 		if (i < 0 && age >= 0 || i >= 0 && age < 0) {
 			this.rideableRavagers$setFlag(rideableRavagers$BABY_FLAG, age < 0);
@@ -244,48 +244,42 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 
 	@Override
 	public boolean isBaby() {
-		return this.getBreedingAge() < 0;
+		return this.rideableRavagers$getBreedingAge() < 0;
 	}
 
 	@Override
 	public void setBaby(boolean baby) {
-		this.setBreedingAge(baby ? -24000 : 0);
+		this.rideableRavagers$setBreedingAge(baby ? -24000 : 0);
 	}
 
 	@Override
-	public boolean isBreedingItem(ItemStack stack) {
+	public boolean rideableRavagers$isBreedingItem(ItemStack stack) {
 		return stack.is(Items.COOKED_BEEF);
 	}
 
 	@Override
-	public void lovePlayer(@Nullable Player player) {
+	public void rideableRavagers$lovePlayer(@Nullable Player player) {
 		this.rideableRavagers$loveTicks = 600;
-		if (player != null) {
-			this.rideableRavagers$lovingPlayer = player.getUUID();
+		if (player instanceof ServerPlayer serverplayer) {
+			this.rideableRavagers$loveCause = new EntityReference<>(serverplayer);
 		}
 
 		this.level().broadcastEntityEvent(this, EntityEvent.IN_LOVE_HEARTS);
-
 	}
 
 	@Override
-	public void setLoveTicks(int loveTicks) {
+	public void rideableRavagers$setLoveTicks(int loveTicks) {
 		this.rideableRavagers$loveTicks = loveTicks;
 	}
 
 	@Override
-	public int getLoveTicks() {
+	public int rideableRavagers$getLoveTicks() {
 		return this.rideableRavagers$loveTicks;
 	}
 
 	@Override
-	public @Nullable ServerPlayer getLovingPlayer() {
-		if (this.rideableRavagers$lovingPlayer == null) {
-			return null;
-		} else {
-			Player playerEntity = this.level().getPlayerByUUID(this.rideableRavagers$lovingPlayer);
-			return playerEntity instanceof ServerPlayer ? (ServerPlayer)playerEntity : null;
-		}
+	public @Nullable ServerPlayer rideableRavagers$getLovingPlayer() {
+		return EntityReference.get(this.rideableRavagers$loveCause, uuid -> (ServerPlayer) level().getPlayerByUUID(uuid), ServerPlayer.class);
 	}
 
 	@Inject(
@@ -318,32 +312,31 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 
 	@Override
 	public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance difficultyInstance, EntitySpawnReason entitySpawnReason, @Nullable SpawnGroupData spawnGroupData) {
-		rideableRavagers$setFlag(rideableRavagers$SADDLED_FLAG, true);
-		return super.finalizeSpawn(serverLevelAccessor, difficultyInstance, entitySpawnReason, spawnGroupData);
+		this.setItemSlot(EquipmentSlot.SADDLE, new ItemStack(Items.SADDLE));
+		return  super.finalizeSpawn(serverLevelAccessor, difficultyInstance, entitySpawnReason, spawnGroupData);
 	}
 
 	@Override
-	public Mob createChild(ServerLevel level, BreedableEntity other) {
+	public Mob rideableRavagers$createChild(ServerLevel level, BreedableEntity other) {
 		Ravager entity = EntityType.RAVAGER.create(level, EntitySpawnReason.BREEDING);
-		((BreedableEntity) entity).setBred(true);
-		((RavagerEntityMixin) (Object) entity).rideableRavagers$setFlag(rideableRavagers$SADDLED_FLAG, false);
+		((BreedableEntity) entity).rideableRavagers$setBred(true);
 		return entity;
 	}
 
 	@Override
 	protected @NotNull InteractionResult mobInteract(Player player, @NotNull InteractionHand hand) {
 		ItemStack itemStack = player.getItemInHand(hand);
-		boolean breedingItem = this.isBreedingItem(itemStack);
+		boolean breedingItem = this.rideableRavagers$isBreedingItem(itemStack);
 		if (!breedingItem && this.rideableRavagers$isTamed() && this.isSaddled() && !this.isVehicle() && !this.isBaby() && !player.isSecondaryUseActive()) {
 			if (!this.level().isClientSide) {
 				this.rideableRavagers$putPlayerOnBack(player);
 			}
 			return InteractionResult.SUCCESS;
 		} else if (breedingItem) {
-			int i = this.getBreedingAge();
+			int i = this.rideableRavagers$getBreedingAge();
 			if (!this.level().isClientSide && i == 0 && this.canEat()) {
 				this.eat(player, hand, itemStack);
-				this.lovePlayer(player);
+				this.rideableRavagers$lovePlayer(player);
 				return InteractionResult.SUCCESS;
 			}
 
@@ -353,7 +346,7 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 				if (!this.rideableRavagers$isTamed()) {
 					this.level().broadcastEntityEvent(this, EntityEvent.IN_LOVE_HEARTS);
 					this.rideableRavagers$setTamed(true);
-					this.rideableRavagers$setOwnerUuid(player.getUUID());
+					this.rideableRavagers$setOwner(player);
 					this.setTarget(null);
 				}
 
@@ -368,15 +361,28 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 
 		InteractionResult actionResult = super.mobInteract(player, hand);
 		if (!actionResult.consumesAction()) {
-			return itemStack.is(Items.SADDLE) ? itemStack.interactLivingEntity(player, this, hand) : InteractionResult.PASS;
+			if (!this.isBaby() && this.isEquippableInSlot(itemStack, EquipmentSlot.SADDLE)) {
+				return itemStack.interactLivingEntity(player, this, hand);
+			}
+			return InteractionResult.PASS;
 		} else {
 			return actionResult;
 		}
 	}
 
 	@Override
+	public boolean canUseSlot(EquipmentSlot equipmentSlot) {
+		return equipmentSlot != EquipmentSlot.SADDLE ? super.canUseSlot(equipmentSlot) : this.isAlive() && !this.isBaby() && this.rideableRavagers$isTamed();
+	}
+
+	@Override
+	protected boolean canDispenserEquipIntoSlot(EquipmentSlot equipmentSlot) {
+		return (equipmentSlot == EquipmentSlot.SADDLE) && this.rideableRavagers$isTamed() || super.canDispenserEquipIntoSlot(equipmentSlot);
+	}
+
+	@Override
 	public boolean canBeLeashed() {
-		return !this.isLeashed() && isBred();
+		return !this.isLeashed() && rideableRavagers$isBred();
 	}
 
 	@Override
@@ -403,21 +409,6 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 		return new Vec3(f, 0.0, g);
 	}
 
-	public boolean isSaddled() {
-		return rideableRavagers$getFlag(rideableRavagers$SADDLED_FLAG);
-	}
-
-	public boolean isSaddleable() {
-		return this.isAlive() && !this.isBaby();
-	}
-
-	public void equipSaddle(ItemStack itemStack, @Nullable SoundSource sound) {
-		rideableRavagers$setFlag(rideableRavagers$SADDLED_FLAG, true);
-		if (sound != null) {
-			this.level().playSound(null, this, SoundEvents.RAVAGER_ROAR, sound, 0.5F, 1.0F);
-		}
-	}
-
 	@Override
 	protected float getRiddenSpeed(@NotNull Player controllingPlayer) {
 		return (float)this.getAttributeValue(Attributes.MOVEMENT_SPEED);
@@ -426,8 +417,8 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	@Override
 	protected void dropEquipment(ServerLevel serverLevel) {
 		super.dropEquipment(serverLevel);
-		if (this.isSaddled()) {
-			this.spawnAtLocation(serverLevel, Items.SADDLE);
+		if (!this.getItemBySlot(EquipmentSlot.SADDLE).isEmpty()) {
+			this.spawnAtLocation(serverLevel, this.getItemBySlot(EquipmentSlot.SADDLE));
 		}
 	}
 
@@ -515,11 +506,11 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 	)
 	private void rideableRavagers$tickMovement(CallbackInfo ci) {
 		if (!this.level().isClientSide && this.isAlive()) {
-			int i = this.getBreedingAge();
+			int i = this.rideableRavagers$getBreedingAge();
 			if (i < 0) {
-				this.setBreedingAge(++i);
+				this.rideableRavagers$setBreedingAge(++i);
 			} else if (i > 0) {
-				this.setBreedingAge(--i);
+				this.rideableRavagers$setBreedingAge(--i);
 			}
 		}
 	}
@@ -528,41 +519,36 @@ public abstract class RavagerEntityMixin extends Raider implements BreedableEnti
 			method = "addAdditionalSaveData",
 			at = @At("HEAD")
 	)
-	private void rideableRavagers$writeCustomDataToNbt(CompoundTag nbt, CallbackInfo ci) {
-		nbt.putInt("Age", this.getBreedingAge());
-		nbt.putInt("ForcedAge", this.rideableRavagers$forcedAge);
-		nbt.putBoolean("Bred", this.isBred());
-		nbt.putBoolean("Tame", this.rideableRavagers$isTamed());
-		if (this.getOwnerUUID() != null) {
-			nbt.putUUID("Owner", this.getOwnerUUID());
-		}
+	private void rideableRavagers$writeCustomDataToNbt(ValueOutput valueOutput, CallbackInfo ci) {
+		valueOutput.putInt("Age", this.rideableRavagers$getBreedingAge());
+		valueOutput.putInt("ForcedAge", this.rideableRavagers$forcedAge);
+		valueOutput.putBoolean("Bred", this.rideableRavagers$isBred());
+		EntityReference<LivingEntity> entityReference = this.getOwnerReference();
+		EntityReference.store(entityReference, valueOutput, "Owner");
 
-		nbt.putInt("InLove", this.rideableRavagers$loveTicks);
-		if (this.rideableRavagers$lovingPlayer != null) {
-			nbt.putUUID("LoveCause", this.rideableRavagers$lovingPlayer);
-		}
+		valueOutput.putInt("InLove", this.rideableRavagers$loveTicks);
+		EntityReference.store(this.rideableRavagers$loveCause, valueOutput, "LoveCause");
 	}
 
 	@Inject(
 			method = "readAdditionalSaveData",
 			at = @At("HEAD")
 	)
-	private void rideableRavagers$readCustomDataToNbt(CompoundTag nbt, CallbackInfo ci) {
-		this.setBreedingAge(nbt.getInt("Age"));
-		this.rideableRavagers$forcedAge = nbt.getInt("ForcedAge");
-		this.setBred(nbt.getBoolean("Bred"));
-		this.rideableRavagers$setTamed(nbt.getBoolean("Tame"));
-		UUID uuid = null;
-		if (nbt.hasUUID("Owner")) {
-			uuid = nbt.getUUID("Owner");
+	private void rideableRavagers$readCustomDataToNbt(ValueInput valueInput, CallbackInfo ci) {
+		this.rideableRavagers$setBreedingAge(valueInput.getIntOr("Age", 0));
+		this.rideableRavagers$forcedAge = valueInput.getIntOr("ForcedAge", 0);
+		this.rideableRavagers$setBred(valueInput.getBooleanOr("Bred", false));
+		EntityReference<LivingEntity> entityReference = EntityReference.readWithOldOwnerConversion(valueInput, "Owner", this.level());
+		if (entityReference != null) {
+			EntityAttachment.INSTANCE.setData(this, Attachments.RAVAGER_OWNER, Optional.of(entityReference));
+			this.rideableRavagers$setTamed(true);
+		} else {
+			EntityAttachment.INSTANCE.setData(this, Attachments.RAVAGER_OWNER, Optional.empty());
+			this.rideableRavagers$setTamed(false);
 		}
 
-		if (uuid != null) {
-			this.rideableRavagers$setOwnerUuid(uuid);
-		}
-
-		this.rideableRavagers$loveTicks = nbt.getInt("InLove");
-		this.rideableRavagers$lovingPlayer = nbt.hasUUID("LoveCause") ? nbt.getUUID("LoveCause") : null;
+		this.rideableRavagers$loveTicks = valueInput.getIntOr("InLove", 0);
+		this.rideableRavagers$loveCause = EntityReference.read(valueInput, "LoveCause");
 	}
 
 	@Inject(

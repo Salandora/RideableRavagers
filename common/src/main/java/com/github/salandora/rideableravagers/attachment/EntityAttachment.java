@@ -1,7 +1,6 @@
 package com.github.salandora.rideableravagers.attachment;
 
 import com.mojang.serialization.Codec;
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -43,6 +42,8 @@ public abstract class EntityAttachment {
 	@Nullable
 	public abstract <T> T removeData(Entity e, AttachmentType<T> type);
 
+	public abstract <T> void registerOnAttachmentSet(Entity e, AttachmentType<T> type, OnAttachmentSet<T> callback);
+
 	public abstract <T> AttachmentType<T> create(ResourceLocation id, Consumer<Builder<T>> consumer);
 
 	public interface Builder<T> {
@@ -50,5 +51,10 @@ public abstract class EntityAttachment {
 		Builder<T> persistent(Codec<T> codec);
 		Builder<T> copyOnDeath();
 		Builder<T> synchronize(StreamCodec<? super RegistryFriendlyByteBuf, T> packetCodec);
+	}
+
+	@FunctionalInterface
+	public interface OnAttachmentSet<A> {
+		void onAttachedSet(@Nullable A oldValue, @Nullable A newValue);
 	}
 }

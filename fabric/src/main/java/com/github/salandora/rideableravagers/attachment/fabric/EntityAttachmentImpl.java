@@ -34,6 +34,11 @@ public class EntityAttachmentImpl extends EntityAttachment {
 	}
 
 	@Override
+	public <T> void registerOnAttachmentSet(Entity e, AttachmentType<T> type, EntityAttachment.OnAttachmentSet<T> callback) {
+		e.<T>onAttachedSet(type.attachmentType()).register(callback::onAttachedSet);
+	}
+
+	@Override
 	public <T> AttachmentType<T> create(ResourceLocation id, Consumer<Builder<T>> consumer) {
 		net.fabricmc.fabric.api.attachment.v1.AttachmentType<T> type = AttachmentRegistry.create(id, builder -> consumer.accept(new BuilderImpl<>(builder)));
 		return new AttachmentType<>() {
@@ -44,7 +49,7 @@ public class EntityAttachmentImpl extends EntityAttachment {
 		};
 	}
 
-	public static class BuilderImpl<T> implements EntityAttachment.Builder<T> {
+	private static class BuilderImpl<T> implements Builder<T> {
 		AttachmentRegistry.Builder<T> builder;
 
 		BuilderImpl(AttachmentRegistry.Builder<T> builder) {
@@ -63,7 +68,7 @@ public class EntityAttachmentImpl extends EntityAttachment {
 			this.builder.copyOnDeath();
 			return this;
 		}
-		public Builder<T> synchronize(StreamCodec<? super RegistryFriendlyByteBuf, T> packetCodec) {
+		public Builder<T> synchronize(StreamCodec<? super RegistryFriendlyByteBuf, T> packetCodec){
 			this.builder.syncWith(packetCodec, AttachmentSyncPredicate.all());
 			return this;
 		}

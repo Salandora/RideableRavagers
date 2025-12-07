@@ -13,14 +13,14 @@ description = '''Enables you to breed ravagers and ride the tamed ones'''
 [[dependencies.rideableravagers]]
 modId = "neoforge"
 type = "required"
-versionRange = "[21.4,)"
+versionRange = "[21.8,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.rideableravagers]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21.4,1.21.6)"
+versionRange = "[1.21.8,)"
 ordering = "NONE"
 side = "BOTH"
 
@@ -33,3 +33,6 @@ side = "BOTH"
 
 [[mixins]]
 config = "rideableravagers.common.mixins.json"
+
+[[mixins]]
+config = "rideableravagers.neoforge.mixins.json"

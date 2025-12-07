@@ -1,14 +1,11 @@
 package com.github.salandora.rideableravagers.client;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.model.RavagerModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshTransformer;
 import net.minecraft.resources.ResourceLocation;
 
-@Environment(EnvType.CLIENT)
 public class RideableRavagersClient {
 	public static final ModelLayerLocation RAVAGER_BABY = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath("rideableravagers", "ravager_baby"), "main");
 

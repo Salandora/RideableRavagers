@@ -18,13 +18,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
 
 public interface BreedableEntity {
-	boolean isBred();
-	void setBred(boolean bred);
+	boolean rideableRavagers$isBred();
+	void rideableRavagers$setBred(boolean bred);
 
-	int getBreedingAge();
-	void setBreedingAge(int ticks);
+	int rideableRavagers$getBreedingAge();
+	void rideableRavagers$setBreedingAge(int ticks);
 
-	boolean isBreedingItem(ItemStack stack);
+	boolean rideableRavagers$isBreedingItem(ItemStack stack);
 
 	default void eat(@NotNull Player player, InteractionHand hand, ItemStack stack) {
 		if (!player.getAbilities().instabuild) {
@@ -32,40 +32,40 @@ public interface BreedableEntity {
 		}
 	}
 
-	default boolean canEat() { return this.getLoveTicks() <= 0; }
+	default boolean canEat() { return this.rideableRavagers$getLoveTicks() <= 0; }
 
-	void lovePlayer(@Nullable Player player);
+	void rideableRavagers$lovePlayer(@Nullable Player player);
 
-	void setLoveTicks(int loveTicks);
+	void rideableRavagers$setLoveTicks(int loveTicks);
 
-	int getLoveTicks();
+	int rideableRavagers$getLoveTicks();
 
 	@Nullable
-	ServerPlayer getLovingPlayer();
+	ServerPlayer rideableRavagers$getLovingPlayer();
 
-	default boolean isInLove() { return this.getLoveTicks() > 0; }
+	default boolean isInLove() { return this.rideableRavagers$getLoveTicks() > 0; }
 
-	default void resetLoveTicks() { this.setLoveTicks(0); }
+	default void resetLoveTicks() { this.rideableRavagers$setLoveTicks(0); }
 
-	Mob createChild(ServerLevel world, BreedableEntity other);
+	Mob rideableRavagers$createChild(ServerLevel world, BreedableEntity other);
 
 	default void breed(ServerLevel world, BreedableEntity other) {
-		Mob child = this.createChild(world, other);
+		Mob child = this.rideableRavagers$createChild(world, other);
 		if (child != null) {
 			child.setBaby(true);
-			child.moveTo(((Entity) this).getX(), ((Entity) this).getY(), ((Entity) this).getZ(), 0.0F, 0.0F);
+			child.snapTo(((Entity) this).getX(), ((Entity) this).getY(), ((Entity) this).getZ(), 0.0F, 0.0F);
 			this.breed(world, other, child);
 			world.addFreshEntityWithPassengers(child);
 		}
 	}
 
 	default void breed(@NotNull ServerLevel world, @NotNull BreedableEntity other, @Nullable Mob baby)  {
-		Optional.ofNullable(this.getLovingPlayer()).or(() -> Optional.ofNullable(other.getLovingPlayer())).ifPresent(player -> {
+		Optional.ofNullable(this.rideableRavagers$getLovingPlayer()).or(() -> Optional.ofNullable(other.rideableRavagers$getLovingPlayer())).ifPresent(player -> {
 			player.awardStat(Stats.ANIMALS_BRED);
 			//Criteria.BRED_ANIMALS.trigger(player, this, other, baby);
 		});
-		this.setBreedingAge(6000);
-		other.setBreedingAge(6000);
+		this.rideableRavagers$setBreedingAge(6000);
+		other.rideableRavagers$setBreedingAge(6000);
 		this.resetLoveTicks();
 		other.resetLoveTicks();
 		world.broadcastEntityEvent((Entity) this, EntityEvent.IN_LOVE_HEARTS);

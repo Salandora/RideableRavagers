@@ -17,8 +17,11 @@ public record SpawnsBiomeModifier() implements BiomeModifier {
 	public void modify(Holder<Biome> biome, Phase phase, ModifiableBiomeInfo.BiomeInfo.Builder builder) {
 		if (phase == Phase.ADD && RideableRavagersConfig.spawnInSavannah) {
 			if (biome.is(BiomeTags.IS_SAVANNA)) {
-				builder.getMobSpawnSettings().addSpawn(MobCategory.MONSTER,
-						new MobSpawnSettings.SpawnerData(EntityType.RAVAGER, RideableRavagersConfig.spawnWeight, RideableRavagersConfig.spawnMinGroupSize, RideableRavagersConfig.spawnMaxGroupSize));
+				builder.getMobSpawnSettings().addSpawn(
+						MobCategory.MONSTER,
+						RideableRavagersConfig.spawnWeight,
+						new MobSpawnSettings.SpawnerData(EntityType.RAVAGER, RideableRavagersConfig.spawnMinGroupSize, RideableRavagersConfig.spawnMaxGroupSize)
+				);
 			}
 		}
 	}

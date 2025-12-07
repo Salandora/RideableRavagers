@@ -9,8 +9,9 @@ import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.RavagerRenderer;
 import net.minecraft.client.renderer.entity.state.RavagerRenderState;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Saddleable;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.monster.Ravager;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,7 +30,7 @@ public abstract class RavagerEntityRendererMixin extends MobRenderer<Ravager, Ra
 	private RavagerModel rideableRavagers$babyModel;
 
 	@Unique
-	private boolean rideableRavagers$isSaddled;
+	private ItemStack rideableRavagers$isSaddle;
 
 	public RavagerEntityRendererMixin(EntityRendererProvider.Context context, RavagerModel entityModel, float f) {
 		super(context, entityModel, f);
@@ -49,12 +50,12 @@ public abstract class RavagerEntityRendererMixin extends MobRenderer<Ravager, Ra
 			at = @At("HEAD")
 	)
 	public void rideableRavagers$extractRenderState(Ravager ravager, RavagerRenderState ravagerRenderState, float f, CallbackInfo ci) {
-		this.rideableRavagers$isSaddled = ((Saddleable) ravager).isSaddled();
+		this.rideableRavagers$isSaddle = ravager.getItemBySlot(EquipmentSlot.SADDLE);
 	}
 
 	@Inject(method = "getTextureLocation(Lnet/minecraft/client/renderer/entity/state/RavagerRenderState;)Lnet/minecraft/resources/ResourceLocation;", at = @At("HEAD"), cancellable = true)
 	public void rideableravagers$getTexture(RavagerRenderState ravagerRenderState, CallbackInfoReturnable<ResourceLocation> cir) {
-		if (!rideableRavagers$isSaddled) {
+		if (rideableRavagers$isSaddle.isEmpty()) {
 			cir.setReturnValue(UNSADDLED_TEXTURE);
 		}
 	}
