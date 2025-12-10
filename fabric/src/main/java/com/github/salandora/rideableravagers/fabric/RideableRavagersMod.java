@@ -1,4 +1,4 @@
-package com.github.salandora.rideableravagers;
+package com.github.salandora.rideableravagers.fabric;
 
 import com.github.salandora.rideableravagers.config.RideableRavagersConfig;
 import eu.midnightdust.lib.config.MidnightConfig;
