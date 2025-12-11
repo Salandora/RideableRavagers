@@ -1,7 +1,7 @@
-package com.github.salandora.rideableravagers.init;
+package com.github.salandora.rideableravagers.forge.init;
 
-import com.github.salandora.rideableravagers.RideableRavagersMod;
-import com.github.salandora.rideableravagers.data.biome_modifiers.SpawnsBiomeModifier;
+import com.github.salandora.rideableravagers.forge.RideableRavagersMod;
+import com.github.salandora.rideableravagers.forge.data.biome_modifiers.SpawnsBiomeModifier;
 import com.mojang.serialization.Codec;
 import net.minecraftforge.common.world.BiomeModifier;
 import net.minecraftforge.registries.DeferredRegister;

@@ -1,7 +1,7 @@
-package com.github.salandora.rideableravagers.data.biome_modifiers;
+package com.github.salandora.rideableravagers.forge.data.biome_modifiers;
 
 import com.github.salandora.rideableravagers.config.RideableRavagersConfig;
-import com.github.salandora.rideableravagers.init.BiomeCodecInit;
+import com.github.salandora.rideableravagers.forge.init.BiomeCodecInit;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Holder;
 import net.minecraft.tags.BiomeTags;

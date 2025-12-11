@@ -1,7 +1,7 @@
-package com.github.salandora.rideableravagers;
+package com.github.salandora.rideableravagers.forge;
 
 import com.github.salandora.rideableravagers.config.RideableRavagersConfig;
-import com.github.salandora.rideableravagers.init.BiomeCodecInit;
+import com.github.salandora.rideableravagers.forge.init.BiomeCodecInit;
 import eu.midnightdust.lib.config.MidnightConfig;
 
 import net.minecraftforge.common.MinecraftForge;
