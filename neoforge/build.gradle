@@ -82,7 +82,7 @@ modrinth {
         // scope.type
         // The scope can be `required`, `optional`, `incompatible`, or `embedded`
         // The type can either be `project` or `version`
-        embedded.project "midnightlib"
+        required.project "midnightlib"
     }
 }
 
@@ -110,7 +110,7 @@ curseforge {
         }
 
         relations {
-            embeddedLibrary 'midnightlib'
+            requiredDependency 'midnightlib'
         }
     }
 }
