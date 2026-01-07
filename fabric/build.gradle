@@ -80,7 +80,7 @@ modrinth {
         // The scope can be `required`, `optional`, `incompatible`, or `embedded`
         // The type can either be `project` or `version`
         required.project "fabric-api"
-        embedded.project "midnightlib"
+        required.project "midnightlib"
     }
 }
 
@@ -109,7 +109,7 @@ curseforge {
 
         relations {
             requiredDependency 'fabric-api'
-            embeddedLibrary 'midnightlib'
+            requiredDependency 'midnightlib'
         }
     }
 }
